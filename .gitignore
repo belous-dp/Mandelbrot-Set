@@ -1,0 +1,13 @@
+# IDE
+*.user
+.idea
+*.cbp
+
+logs/
+
+# Cmake
+CMakeCache.txt
+CMakeFiles/
+cmake-build*
+cmake_install.cmake
+Makefile
