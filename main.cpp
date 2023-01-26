@@ -2,14 +2,14 @@
 // Created by Danila Belous on 13.01.2023 at 01:21.
 //
 
-#include <QtWidgets/QApplication>
-#include <QtWidgets/QWidget>
+#include <QApplication>
+#include "main_window.h"
 
 int main(int argc, char* argv[]) {
-    QApplication a(argc, argv);
+  QApplication a(argc, argv);
 
-    QWidget w;
-    w.show();
+  window window;
+  window.show();
 
-    return a.exec();
+  return a.exec();
 }
