@@ -15,6 +15,7 @@ picture::picture(QWidget* parent) : QWidget(parent) {
 }
 
 void picture::fill_image(QImage& image) {
+  //std::cout << "drawing picture: " << image.width() << 'x' << image.height() << '\n';
   uchar* data = image.bits();
   for (int y = 0; y < image.height(); ++y) {
     uchar* p = data + y * image.bytesPerLine();
@@ -47,7 +48,18 @@ double color_it(int policy, int it, int max) {
 }
 
 double picture::get_escape_rate(int pos_x, int pos_y, int width, int height) {
-  double min_x = -2, max_x = 1, min_y = -1, max_y = 1;
+  double min_x = -2, max_x = 1, min_y = -1.5, max_y = 1.5;
+  if (width < (max_x - min_x) * height / (max_y - min_y)) {
+    //std::cout << "resize cuz width too small\n";
+    double coord_height = ((max_x - min_x) * height) / width;
+    max_y = coord_height / 2;
+    min_y = -max_y;
+  } else {
+    // std::cout << "resize cuz height too small\n";
+    double coord_width = ((max_y - min_y) * width) / height;
+    max_x = coord_width / 3;
+    min_x = -max_x * 2;
+  }
   double cx = min_x + ((max_x - min_x) * pos_x) / width;
   double cy = min_y + ((max_y - min_y) * pos_y) / height;
 

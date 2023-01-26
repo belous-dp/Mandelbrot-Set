@@ -10,7 +10,7 @@
 
 window::window(QWidget* parent) : QMainWindow(parent) {
   std::cout << std::fixed << std::setprecision(3);
-  resize(200, 200);
+  resize(300, 200);
   // setFixedSize(1000, 500);
 
   // m_button = new QPushButton("push me", this);
