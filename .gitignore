@@ -2,8 +2,8 @@
 *.user
 .idea
 *.cbp
-
-logs/
+.vs
+out
 
 # Cmake
 CMakeCache.txt

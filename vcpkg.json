@@ -1,8 +1,0 @@
-{
-  "name": "mandelbrot",
-  "version-string": "0.0.1",
-  "dependencies": [
-    "qtbase"
-  ]
-}
-
