@@ -33,16 +33,17 @@ double get_escape_rate(QPointF const& pixel, unsigned cur_img_version, unsigned 
   double cx = c.x();
   double cy = c.y();
 
-  double x = 0, y = 0;
+  double x = 0, y = 0, x2 = 0, y2 = 0;
 
   int iteration = 0;
-  while (iteration < num_iterations && x * x + y * y <= 4) {
+  while (iteration < num_iterations && x2 + y2 <= 4) {
     if (cur_img_version + 1 < m_max_version.load(std::memory_order_relaxed)) {
       return -1;
     }
-    double tx = x * x - y * y + cx;
     y = 2 * x * y + cy;
-    x = tx;
+    x = x2 - y2 + cx;
+    x2 = x * x;
+    y2 = y * y;
     iteration++;
   }
   return color_it(style, iteration, num_iterations);
@@ -97,6 +98,9 @@ void workers::render_image(render_layout const& lay) {
   assert(m_cur_version <= m_max_version);
   m_failed.store(false, std::memory_order_relaxed);
   fill_image(img, lay);
-  //m_perf_helper.profile([&] { fill_image(img, lay); });
+  //m_perf_helper.profile([&] {
+    //m_failed.store(false, std::memory_order_relaxed);
+    //fill_image(img, lay);
+  //});
   m_cur_version++;
 }

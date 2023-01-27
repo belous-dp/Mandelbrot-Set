@@ -120,7 +120,7 @@ void picture::closeEvent(QCloseEvent* event) {
 }
 
 void picture::zoom_picture(double power) {
-  constexpr static double zoom_coef = 0.7;
+  constexpr static double zoom_coef = 0.85;
   double zoom_val = pow(zoom_coef, power);
   lay.m_min_x *= zoom_val;
   lay.m_max_x *= zoom_val;
