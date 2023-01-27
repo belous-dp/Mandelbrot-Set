@@ -1,10 +1,10 @@
 #include "main_window.h"
 #include "picture.h"
-#include <QApplication>
-#include <QLayout>
-#include <QMenuBar>
-#include <QPushButton>
-#include <QTextBrowser>
+// #include <QApplication>
+// #include <QLayout>
+// #include <QMenuBar>
+// #include <QPushButton>
+// #include <QTextBrowser>
 #include <QWidget>
 #include <iostream>
 
@@ -18,7 +18,7 @@ window::window(QWidget* parent) : QMainWindow(parent) {
 
   m_picture = new picture(this);
   setCentralWidget(m_picture);
-  
+
   // menuBar()->addMenu(tr("File"));
 
   // m_wid = new QWidget(this);

@@ -18,8 +18,8 @@ public:
   explicit window(QWidget* parent = nullptr);
 
 private:
-  //QPushButton* m_button;
+  // QPushButton* m_button;
   picture* m_picture;
-  //QWidget* m_wid;
-  //QTextBrowser* m_text_browser;
+  // QWidget* m_wid;
+  // QTextBrowser* m_text_browser;
 };

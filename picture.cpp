@@ -1,9 +1,10 @@
-#include "picture.h"
-#include <QPainter>
-#include <iostream>
 //
 // Created by Danila Belous on 26.01.2023 at 14:08.
 //
+
+#include "picture.h"
+#include <QPainter>
+#include <iostream>
 
 picture::picture(QWidget* parent) : QWidget(parent) {
   // move(0, 0);
@@ -15,7 +16,7 @@ picture::picture(QWidget* parent) : QWidget(parent) {
 }
 
 void picture::fill_image(QImage& image) {
-  //std::cout << "drawing picture: " << image.width() << 'x' << image.height() << '\n';
+  // std::cout << "drawing picture: " << image.width() << 'x' << image.height() << '\n';
   uchar* data = image.bits();
   for (int y = 0; y < image.height(); ++y) {
     uchar* p = data + y * image.bytesPerLine();
@@ -50,7 +51,7 @@ double color_it(int policy, int it, int max) {
 double picture::get_escape_rate(int pos_x, int pos_y, int width, int height) {
   double min_x = -2, max_x = 1, min_y = -1.5, max_y = 1.5;
   if (width < (max_x - min_x) * height / (max_y - min_y)) {
-    //std::cout << "resize cuz width too small\n";
+    // std::cout << "resize cuz width too small\n";
     double coord_height = ((max_x - min_x) * height) / width;
     max_y = coord_height / 2;
     min_y = -max_y;
@@ -75,7 +76,7 @@ double picture::get_escape_rate(int pos_x, int pos_y, int width, int height) {
     x = tx;
     iteration++;
   }
-  //std::cout << iteration << ' ';
+  // std::cout << iteration << ' ';
   return color_it(3, iteration, num_iterations);
 }
 
@@ -83,6 +84,6 @@ void picture::paintEvent(QPaintEvent* event) {
   QPainter p(this);
   // p.drawLine(QLine(100, 200, 80, 30));
   QImage img(width(), height(), QImage::Format_RGB888);
-  fill_image(img);
+  m_perf_helper.profile([&] { fill_image(img); });
   p.drawImage(0, 0, img);
 }
