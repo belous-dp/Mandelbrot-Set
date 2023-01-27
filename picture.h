@@ -22,6 +22,9 @@ protected:
   void paintEvent(QPaintEvent* event) override;
   void resizeEvent(QResizeEvent* event) override;
   void wheelEvent(QWheelEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
 
 private slots:
   void image_ready(QImage const& image);
@@ -43,4 +46,6 @@ private:
   void emit_signal();
   void reset_layout();
   void zoom_picture(double power);
+
+  QPointF m_press_pos;
 };

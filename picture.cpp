@@ -93,6 +93,32 @@ void picture::wheelEvent(QWheelEvent* event) {
   zoom_picture(steps);
 }
 
+void picture::mousePressEvent(QMouseEvent* event) {
+  if (event->button() == Qt::LeftButton) {
+    m_press_pos = event->position();
+  }
+}
+
+void picture::mouseMoveEvent(QMouseEvent* event) {
+  if (event->button() == Qt::LeftButton) {
+    m_press_pos = event->position();
+  }
+}
+
+void picture::mouseReleaseEvent(QMouseEvent* event) {
+  QPointF delta = event->position() - m_press_pos;
+  double px = delta.x() / lay.m_img_width;
+  double py = delta.y() / lay.m_img_height;
+  double lenx = lay.m_max_x - lay.m_min_x;
+  double leny = lay.m_max_y - lay.m_min_y;
+  lay.m_min_x -= lenx * px;
+  lay.m_max_x -= lenx * px;
+  lay.m_min_y -= leny * py;
+  lay.m_max_y -= leny * py;
+  emit_signal();
+  update();
+}
+
 void picture::zoom_picture(double power) {
   constexpr static double zoom_coef = 0.7;
   double zoom_val = pow(zoom_coef, power);
