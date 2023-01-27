@@ -1,11 +1,11 @@
 #include "main_window.h"
 #include "picture.h"
-// #include <QMenuBar>
+#include <QCloseEvent>
 #include <QLabel>
+#include <QMenuBar>
 #include <QStatusBar>
 #include <QWidget>
 #include <iostream>
-#include <QCloseEvent>
 
 window::window(QWidget* parent) : QMainWindow(parent) {
   std::cout << std::fixed << std::setprecision(3);
@@ -14,7 +14,9 @@ window::window(QWidget* parent) : QMainWindow(parent) {
   m_picture = new picture(this);
   setCentralWidget(m_picture);
 
-  // menuBar()->addMenu(tr("File"));
+  // todo
+  // m_nthreads_menu = new QMenu("Number of threads", this);
+  // menuBar()->addMenu(m_nthreads_menu);
 
   statusBar()->setStyleSheet("background-color: black;");
   std::string qlabel_style_sheet = "QLabel { background-color: black; color: white; font-size: 13pt; }";

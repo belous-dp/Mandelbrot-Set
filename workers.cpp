@@ -5,22 +5,28 @@
 #include "workers.h"
 #include <cassert>
 
-double color_it(int policy, int it, int max) {
-  // todo policy enum
-  if (policy == 1) {
-    return 1 - it / static_cast<double>(max);
-  } else if (policy == 2) {
-    // for points that are not in the set iteration is < 50
-    int bottom = 50;
-    return 1 - (it == max ? bottom : it % bottom) / static_cast<double>(bottom);
-  } else if (policy == 3) {
-    // for points that are not in the set iteration is < 50
-    int bottom = 50;
-    return it == max ? 0 : ((it % (bottom + 1)) / static_cast<double>(bottom));
+workers::workers() : m_nthreads(std::thread::hardware_concurrency()) {}
+
+void workers::set_nthreads(unsigned nthreads) {
+  if (nthreads > 0) {
+    m_nthreads = nthreads;
   }
 }
 
-double get_escape_rate(QPointF const& pixel, unsigned cur_img_version, unsigned num_iterations,
+void workers::set_styling(styling style) {
+  m_style = style;
+}
+
+double color_it(styling style, int iter, int max) {
+  if (style == styling::classic) {
+    return 1 - iter / static_cast<double>(max);
+  } else if (style == styling::lecture) {
+    int bottom = 50;
+    return iter == max ? 0 : ((iter % (bottom + 1)) / static_cast<double>(bottom));
+  }
+}
+
+double get_escape_rate(QPointF const& pixel, unsigned cur_img_version, unsigned num_iterations, styling style,
                        render_layout const& lay, std::atomic<unsigned>& m_max_version) {
 
   QPointF c = pixel_to_pos(pixel, lay);
@@ -39,17 +45,17 @@ double get_escape_rate(QPointF const& pixel, unsigned cur_img_version, unsigned 
     x = tx;
     iteration++;
   }
-  return color_it(3, iteration, num_iterations);
+  return color_it(style, iteration, num_iterations);
 }
 
-void fill_image_chunk(uchar* data, qsizetype bytes_per_line, int line, int height, render_layout lay,
+void fill_image_chunk(uchar* data, qsizetype bytes_per_line, int line, int height, styling style, render_layout lay,
                       unsigned num_iter, std::atomic<unsigned>& m_cur_version, std::atomic<unsigned>& m_max_version,
                       std::atomic<uint8_t>& m_failed) {
   for (int y = 0; y < height; ++y) {
     uchar* p = data + y * bytes_per_line;
     for (int x = 0; x < lay.m_img_width; ++x) {
-      double escape_rate =
-          get_escape_rate(QPointF(x, y + line), m_cur_version.load(std::memory_order_relaxed), num_iter, lay, m_max_version);
+      double escape_rate = get_escape_rate(QPointF(x, y + line), m_cur_version.load(std::memory_order_relaxed),
+                                           num_iter, style, lay, m_max_version);
       if (escape_rate < -0.5 || m_failed.load(std::memory_order_relaxed)) {
         m_failed.fetch_or(true, std::memory_order_relaxed);
         return;
@@ -62,7 +68,7 @@ void fill_image_chunk(uchar* data, qsizetype bytes_per_line, int line, int heigh
 }
 
 void workers::fill_image(QImage& image, render_layout const& lay) {
-  std::vector<std::thread> hard_workers(std::min(nthreads, std::thread::hardware_concurrency()));
+  std::vector<std::thread> hard_workers(m_nthreads);
   std::size_t lines_per_thread = lay.m_img_height / hard_workers.size();
   uchar* data = image.bits();
   qsizetype bytes_per_line = image.bytesPerLine();
@@ -73,8 +79,8 @@ void workers::fill_image(QImage& image, render_layout const& lay) {
       if (i + 1 == hard_workers.size()) {
         height += lay.m_img_height % hard_workers.size();
       }
-      hard_workers[i] = std::thread(&fill_image_chunk, data + lc * bytes_per_line, bytes_per_line, lc, height, lay,
-                                    iter, std::ref(m_cur_version), std::ref(m_max_version), std::ref(m_failed));
+      hard_workers[i] = std::thread(&fill_image_chunk, data + lc * bytes_per_line, bytes_per_line, lc, height, m_style,
+                                    lay, iter, std::ref(m_cur_version), std::ref(m_max_version), std::ref(m_failed));
     }
     for (auto& t : hard_workers) {
       t.join();
@@ -90,7 +96,7 @@ void workers::render_image(render_layout const& lay) {
   QImage img(lay.m_img_width, lay.m_img_height, QImage::Format_RGB888);
   assert(m_cur_version <= m_max_version);
   m_failed.store(false, std::memory_order_relaxed);
-  // fill_image(img, lay);
-  m_perf_helper.profile([&] { fill_image(img, lay); });
+  fill_image(img, lay);
+  //m_perf_helper.profile([&] { fill_image(img, lay); });
   m_cur_version++;
 }

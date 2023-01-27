@@ -38,7 +38,6 @@ void picture::resizeEvent(QResizeEvent* event) {
     reset_layout();
     emit_signal();
   }
-  // std::cout << "sent render call for w=" << width() << ", h=" << height() << std::endl;
 }
 
 void picture::reset_layout() {
@@ -50,12 +49,10 @@ void picture::reset_layout() {
   lay.m_img_width = width();
   lay.m_img_height = height();
   if (width() < (lay.m_max_x - lay.m_min_x) * height() / (lay.m_max_y - lay.m_min_y)) {
-    // std::cout << "resize cuz width too small\n";
     double coord_height = ((lay.m_max_x - lay.m_min_x) * height()) / width();
     lay.m_max_y = coord_height / 2;
     lay.m_min_y = -lay.m_max_y;
   } else {
-    // std::cout << "resize cuz height too small\n";
     double coord_width = ((lay.m_max_y - lay.m_min_y) * width()) / height();
     lay.m_max_x = coord_width / 3;
     lay.m_min_x = -lay.m_max_x * 2;
@@ -64,7 +61,6 @@ void picture::reset_layout() {
 
 void picture::paintEvent(QPaintEvent* event) {
   QPainter p(this);
-  // std::cout << "paint event, w=" << width() << ", h=" << height() << std::endl;
   p.fillRect(rect(), Qt::black);
   if (m_image.isNull()) {
     p.setPen(Qt::white);
