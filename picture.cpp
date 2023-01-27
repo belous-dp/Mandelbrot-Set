@@ -13,7 +13,6 @@ picture::picture(QWidget* parent) : QWidget(parent) {
   // setPalette(pal);
 
   m_workers.moveToThread(&m_workers_thread);
-  //connect(&m_workers_thread, &QThread::finished, &m_workers, &QObject::deleteLater);
   connect(this, &picture::render_image, &m_workers, &workers::render_image);
   connect(&m_workers, &workers::image_ready, this, &picture::image_ready);
   m_workers_thread.start();

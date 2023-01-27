@@ -10,6 +10,24 @@ add_executable(mandelbrot "main.cpp" "main_window.cpp" "picture.cpp" "perf_helpe
 
 file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/logs")
 
+target_compile_options(mandelbrot PRIVATE -Wall)
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(mandelbrot PRIVATE -Wno-sign-compare -Wshadow-uncaptured-local -pedantic)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    target_compile_options(mandelbrot PRIVATE -Wno-sign-compare -Wshadow=compatible-local -pedantic)
+endif ()
+
+option(USE_SANITIZERS "Enable to build with undefined, leak and address sanitizers" OFF)
+if (USE_SANITIZERS)
+    target_compile_options(mandelbrot PUBLIC -fsanitize=address,undefined,leak -fno-sanitize-recover=all)
+    target_link_options(mandelbrot PUBLIC -fsanitize=address,undefined,leak)
+endif ()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(mandelbrot PUBLIC -stdlib=libc++)
+endif ()
+
+
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     target_compile_options(mandelbrot PUBLIC -D_GLIBCXX_DEBUG)
 endif ()
