@@ -23,14 +23,19 @@ picture::~picture() {
   m_workers_thread.wait();
 }
 
-void picture::resizeEvent(QResizeEvent* event) {
+void picture::emit_signal() {
   emit render_image(width(), height());
-  std::cout << "sent render call for w=" << width() << ", h=" << height() << std::endl;
+  m_workers.m_max_version++;
+}
+
+void picture::resizeEvent(QResizeEvent* event) {
+  emit_signal();
+  //std::cout << "sent render call for w=" << width() << ", h=" << height() << std::endl;
 }
 
 void picture::paintEvent(QPaintEvent* event) {
   QPainter p(this);
-  std::cout << "paint event, w=" << width() << ", h=" << height() << std::endl;
+  //std::cout << "paint event, w=" << width() << ", h=" << height() << std::endl;
   if (m_image.isNull()) {
     p.drawText(rect(), Qt::AlignBottom, tr("initial rendering..."));
   } else {

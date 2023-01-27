@@ -6,6 +6,7 @@
 #include "perf_helper.h"
 #include <QImage>
 #include <QObject>
+#include <atomic>
 
 class workers : public QObject {
   Q_OBJECT
@@ -16,6 +17,13 @@ public slots:
 signals:
   void image_ready(QImage const& image);
 
+public:
+  std::atomic<unsigned int> m_max_version{0};
+
 private:
   perf_helper m_perf_helper;
+  std::atomic<unsigned int> m_cur_version{0};
+
+  void fill_image(QImage& image);
+  double get_escape_rate(int pos_x, int pos_y, int width, int height, unsigned int cur_img_version);
 };

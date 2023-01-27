@@ -29,4 +29,6 @@ private:
   QThread m_workers_thread;
   workers m_workers;
   QImage m_image;
+
+  void emit_signal();
 };
