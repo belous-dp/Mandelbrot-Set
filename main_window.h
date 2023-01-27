@@ -6,6 +6,7 @@
 
 #include <QMainWindow>
 
+
 class QPushButton; // forward declare to reduce the header size
 class QWidget;
 class picture;

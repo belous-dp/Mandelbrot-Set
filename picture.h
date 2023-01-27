@@ -4,20 +4,29 @@
 
 #pragma once
 
+#include "workers.h"
+#include <QThread>
 #include <QWidget>
-#include "perf_helper.h"
 
 class picture : public QWidget {
   Q_OBJECT
 
 public:
   explicit picture(QWidget* parent = nullptr);
+  ~picture();
 
 protected:
   void paintEvent(QPaintEvent* event) override;
+  void resizeEvent(QResizeEvent* event) override;
+
+private slots:
+  void image_ready(QImage const& image);
+
+signals:
+  void render_image(int width, int height);
 
 private:
-  void fill_image(QImage& img);
-  double get_escape_rate(int pos_x, int pos_y, int width, int height);
-  perf_helper m_perf_helper;
+  QThread m_workers_thread;
+  workers m_workers;
+  QImage m_image;
 };
