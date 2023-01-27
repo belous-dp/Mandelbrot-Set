@@ -10,6 +10,6 @@ struct render_layout {
   double m_min_y;
   double m_max_y;
   double m_scale;
-  double m_img_width;
-  double m_img_height;
+  int m_img_width;
+  int m_img_height;
 };

@@ -27,10 +27,11 @@ private:
   constexpr static unsigned NSTEPS = 10;
   constexpr static unsigned DELTA = 200;
 
+  unsigned nthreads = 2;
+
   perf_helper m_perf_helper;
   std::atomic<unsigned int> m_cur_version{0};
+  std::atomic<uint8_t> m_failed{false};
 
   void fill_image(QImage& image, render_layout const& lay);
-  double get_escape_rate(int pos_x, int pos_y, unsigned cur_img_version, unsigned num_iterations,
-                         render_layout const& lay);
 };
