@@ -8,19 +8,13 @@
 #include <QWheelEvent>
 #include <iostream>
 
-picture::picture(QWidget* parent) : QWidget(parent) {
+picture::picture(QWidget* parent) : QWidget(parent), m_image_pos({0, 0}) {
   // QPalette pal = QPalette();
   // pal.setColor(QPalette::Window, Qt::black);
   // setAutoFillBackground(true);
   // setPalette(pal);
 
-  lay.m_min_x = INIT_MIN_X;
-  lay.m_max_x = INIT_MAX_X;
-  lay.m_min_y = INIT_MIN_Y;
-  lay.m_max_y = INIT_MAX_Y;
-  lay.m_scale = 1.;
-  lay.m_img_width = 0;
-  lay.m_img_height = 0;
+  reset_layout();
 
   m_workers.moveToThread(&m_workers_thread);
   connect(this, &picture::render_image, &m_workers, &workers::render_image);
@@ -83,7 +77,8 @@ void picture::paintEvent(QPaintEvent* event) {
     // поэтому ответственность за запросы о рендеринге можно возложить
     // на те функции, в которых это действительно нужно
     p.fillRect(rect(), Qt::black);
-    p.drawImage(0, 0, m_image);
+    p.drawImage(m_image_pos.x(), m_image_pos.y(), m_image);
+    m_image_pos = {0, 0};
   }
 }
 
@@ -100,8 +95,12 @@ void picture::mousePressEvent(QMouseEvent* event) {
 }
 
 void picture::mouseMoveEvent(QMouseEvent* event) {
-  if (event->button() == Qt::LeftButton) {
-    m_press_pos = event->position();
+  if (event->buttons() & Qt::LeftButton) {
+    QPointF image_pos = event->position() - m_press_pos;
+    m_image_pos.setX(static_cast<int>(image_pos.x()));
+    m_image_pos.setY(static_cast<int>(image_pos.y()));
+    //m_press_pos = event->position();
+    update();
   }
 }
 

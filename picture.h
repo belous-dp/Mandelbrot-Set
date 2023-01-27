@@ -48,4 +48,5 @@ private:
   void zoom_picture(double power);
 
   QPointF m_press_pos;
+  QPoint m_image_pos;
 };
