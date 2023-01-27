@@ -9,10 +9,6 @@
 #include <iostream>
 
 picture::picture(QWidget* parent) : QWidget(parent), m_image_pos({0, 0}) {
-  // QPalette pal = QPalette();
-  // pal.setColor(QPalette::Window, Qt::black);
-  // setAutoFillBackground(true);
-  // setPalette(pal);
 
   reset_layout();
 
@@ -69,14 +65,15 @@ void picture::reset_layout() {
 void picture::paintEvent(QPaintEvent* event) {
   QPainter p(this);
   // std::cout << "paint event, w=" << width() << ", h=" << height() << std::endl;
+  p.fillRect(rect(), Qt::black);
   if (m_image.isNull()) {
-    p.drawText(rect(), Qt::AlignBottom, tr("initial rendering..."));
+    p.setPen(Qt::white);
+    p.drawText(rect(), Qt::AlignCenter, tr("Initial rendering..."));
   } else {
     // можно было бы прямо здесь вызывать invokeMethod у workers,
     // но иногда нам не требуется заново рендерить картинку,
     // поэтому ответственность за запросы о рендеринге можно возложить
     // на те функции, в которых это действительно нужно
-    p.fillRect(rect(), Qt::black);
     p.drawImage(m_image_pos.x(), m_image_pos.y(), m_image);
     m_image_pos = {0, 0};
   }
@@ -91,6 +88,7 @@ void picture::wheelEvent(QWheelEvent* event) {
 void picture::mousePressEvent(QMouseEvent* event) {
   if (event->button() == Qt::LeftButton) {
     m_press_pos = event->position();
+    emit mouse_pos_changed(pixel_to_pos(m_press_pos, lay));
   }
 }
 
@@ -99,7 +97,7 @@ void picture::mouseMoveEvent(QMouseEvent* event) {
     QPointF image_pos = event->position() - m_press_pos;
     m_image_pos.setX(static_cast<int>(image_pos.x()));
     m_image_pos.setY(static_cast<int>(image_pos.y()));
-    //m_press_pos = event->position();
+    emit mouse_pos_changed(pixel_to_pos(m_press_pos, lay));
     update();
   }
 }
@@ -114,8 +112,9 @@ void picture::mouseReleaseEvent(QMouseEvent* event) {
   lay.m_max_x -= lenx * px;
   lay.m_min_y -= leny * py;
   lay.m_max_y -= leny * py;
-  emit_signal();
+  emit mouse_pos_changed(pixel_to_pos(m_press_pos, lay));
   update();
+  emit_signal();
 }
 
 void picture::zoom_picture(double power) {
@@ -126,6 +125,6 @@ void picture::zoom_picture(double power) {
   lay.m_min_y *= zoom_val;
   lay.m_max_y *= zoom_val;
   lay.m_scale *= zoom_val;
-  emit_signal();
   update();
+  emit_signal();
 }

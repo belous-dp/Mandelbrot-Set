@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <QPoint>
+
 struct render_layout {
   double m_min_x;
   double m_max_x;
@@ -13,3 +15,5 @@ struct render_layout {
   int m_img_width;
   int m_img_height;
 };
+
+QPointF pixel_to_pos(QPointF const& pixel, render_layout const& lay);

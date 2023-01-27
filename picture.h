@@ -16,7 +16,9 @@ public:
   explicit picture(QWidget* parent = nullptr);
   ~picture();
 
-  render_layout lay;
+  render_layout get_layout() const {
+    return lay;
+  }
 
 protected:
   void paintEvent(QPaintEvent* event) override;
@@ -31,11 +33,13 @@ private slots:
 
 signals:
   void render_image(render_layout const& lay);
+  void mouse_pos_changed(QPointF const& mouse_pos);
 
 private:
   QThread m_workers_thread;
   workers m_workers;
   QImage m_image;
+  render_layout lay;
 
 private:
   constexpr static double INIT_MIN_X = -2;

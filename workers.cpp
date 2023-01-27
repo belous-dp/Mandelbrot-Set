@@ -20,11 +20,12 @@ double color_it(int policy, int it, int max) {
   }
 }
 
-double get_escape_rate(int pos_x, int pos_y, unsigned cur_img_version, unsigned num_iterations,
+double get_escape_rate(QPointF const& pixel, unsigned cur_img_version, unsigned num_iterations,
                        render_layout const& lay, std::atomic<unsigned>& m_max_version) {
 
-  double cx = lay.m_min_x + ((lay.m_max_x - lay.m_min_x) * pos_x) / lay.m_img_width;
-  double cy = lay.m_min_y + ((lay.m_max_y - lay.m_min_y) * pos_y) / lay.m_img_height;
+  QPointF c = pixel_to_pos(pixel, lay);
+  double cx = c.x();
+  double cy = c.y();
 
   double x = 0, y = 0;
 
@@ -41,14 +42,14 @@ double get_escape_rate(int pos_x, int pos_y, unsigned cur_img_version, unsigned 
   return color_it(3, iteration, num_iterations);
 }
 
-void fill_image_chunk(uchar* data, qsizetype bytes_per_line, std::size_t line, int height, render_layout lay,
+void fill_image_chunk(uchar* data, qsizetype bytes_per_line, int line, int height, render_layout lay,
                       unsigned num_iter, std::atomic<unsigned>& m_cur_version, std::atomic<unsigned>& m_max_version,
                       std::atomic<uint8_t>& m_failed) {
   for (int y = 0; y < height; ++y) {
     uchar* p = data + y * bytes_per_line;
     for (int x = 0; x < lay.m_img_width; ++x) {
       double escape_rate =
-          get_escape_rate(x, y + line, m_cur_version.load(std::memory_order_relaxed), num_iter, lay, m_max_version);
+          get_escape_rate(QPointF(x, y + line), m_cur_version.load(std::memory_order_relaxed), num_iter, lay, m_max_version);
       if (escape_rate < -0.5 || m_failed.load(std::memory_order_relaxed)) {
         m_failed.fetch_or(true, std::memory_order_relaxed);
         return;

@@ -4,13 +4,12 @@
 
 #pragma once
 
+#include "render_layout.h"
 #include <QMainWindow>
 
-
-class QPushButton; // forward declare to reduce the header size
 class QWidget;
+class QLabel;
 class picture;
-class QTextBrowser;
 
 class window : public QMainWindow {
   Q_OBJECT
@@ -18,9 +17,12 @@ class window : public QMainWindow {
 public:
   explicit window(QWidget* parent = nullptr);
 
+public slots:
+  void mouse_changed(QPointF const& mouse_pos);
+  void window_changed(render_layout const& lay);
+
 private:
-  // QPushButton* m_button;
   picture* m_picture;
-  // QWidget* m_wid;
-  // QTextBrowser* m_text_browser;
+  QLabel* m_position_label;
+  QLabel* m_img_info_label;
 };
