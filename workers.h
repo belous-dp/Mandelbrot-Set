@@ -4,6 +4,7 @@
 
 #pragma once
 #include "perf_helper.h"
+#include "render_layout.h"
 #include <QImage>
 #include <QObject>
 #include <atomic>
@@ -12,7 +13,7 @@ class workers : public QObject {
   Q_OBJECT
 
 public slots:
-  void render_image(int width, int height);
+  void render_image(render_layout const& lay);
 
 signals:
   void image_ready(QImage const& image);
@@ -26,11 +27,10 @@ private:
   constexpr static unsigned NSTEPS = 10;
   constexpr static unsigned DELTA = 200;
 
-
   perf_helper m_perf_helper;
   std::atomic<unsigned int> m_cur_version{0};
 
-  void fill_image(QImage& image);
-  double get_escape_rate(int pos_x, int pos_y, int width, int height, unsigned int cur_img_version,
-                         unsigned num_iterations);
+  void fill_image(QImage& image, render_layout const& lay);
+  double get_escape_rate(int pos_x, int pos_y, unsigned cur_img_version, unsigned num_iterations,
+                         render_layout const& lay);
 };

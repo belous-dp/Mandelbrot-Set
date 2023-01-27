@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "render_layout.h"
 #include "workers.h"
 #include <QThread>
 #include <QWidget>
@@ -15,20 +16,31 @@ public:
   explicit picture(QWidget* parent = nullptr);
   ~picture();
 
+  render_layout lay;
+
 protected:
   void paintEvent(QPaintEvent* event) override;
   void resizeEvent(QResizeEvent* event) override;
+  void wheelEvent(QWheelEvent* event) override;
 
 private slots:
   void image_ready(QImage const& image);
 
 signals:
-  void render_image(int width, int height);
+  void render_image(render_layout const& lay);
 
 private:
   QThread m_workers_thread;
   workers m_workers;
   QImage m_image;
 
+private:
+  constexpr static double INIT_MIN_X = -2;
+  constexpr static double INIT_MAX_X = 1;
+  constexpr static double INIT_MIN_Y = -1.5;
+  constexpr static double INIT_MAX_Y = 1.5;
+
   void emit_signal();
+  void reset_layout();
+  void zoom_picture(double power);
 };

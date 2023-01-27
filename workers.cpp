@@ -20,22 +20,11 @@ double color_it(int policy, int it, int max) {
   }
 }
 
-double workers::get_escape_rate(int pos_x, int pos_y, int width, int height, unsigned int cur_img_version,
-                                unsigned num_iterations) {
-  double min_x = -2, max_x = 1, min_y = -1.5, max_y = 1.5;
-  if (width < (max_x - min_x) * height / (max_y - min_y)) {
-    // std::cout << "resize cuz width too small\n";
-    double coord_height = ((max_x - min_x) * height) / width;
-    max_y = coord_height / 2;
-    min_y = -max_y;
-  } else {
-    // std::cout << "resize cuz height too small\n";
-    double coord_width = ((max_y - min_y) * width) / height;
-    max_x = coord_width / 3;
-    min_x = -max_x * 2;
-  }
-  double cx = min_x + ((max_x - min_x) * pos_x) / width;
-  double cy = min_y + ((max_y - min_y) * pos_y) / height;
+double workers::get_escape_rate(int pos_x, int pos_y, unsigned cur_img_version, unsigned num_iterations,
+                                render_layout const& lay) {
+
+  double cx = lay.m_min_x + ((lay.m_max_x - lay.m_min_x) * pos_x) / lay.m_img_width;
+  double cy = lay.m_min_y + ((lay.m_max_y - lay.m_min_y) * pos_y) / lay.m_img_height;
 
   // std::cout << std::fixed << std::setprecision(3) << cx << ' ' << cy << '\n';
 
@@ -55,7 +44,7 @@ double workers::get_escape_rate(int pos_x, int pos_y, int width, int height, uns
   return color_it(3, iteration, num_iterations);
 }
 
-void workers::fill_image(QImage& image) {
+void workers::fill_image(QImage& image, render_layout const& lay) {
   // std::cout << "drawing picture: " << image.width() << 'x' << image.height() << '\n';
   unsigned iter = MIN_ITER;
   while (iter <= MAX_ITER) {
@@ -64,8 +53,7 @@ void workers::fill_image(QImage& image) {
       uchar* p = data + y * image.bytesPerLine();
       for (int x = 0; x < image.width(); ++x) {
 
-        double escape_rate =
-            get_escape_rate(x, y, image.width(), image.height(), m_cur_version.load(std::memory_order_relaxed), iter);
+        double escape_rate = get_escape_rate(x, y, m_cur_version.load(std::memory_order_relaxed), iter, lay);
         if (escape_rate < -0.5) {
           return;
         }
@@ -80,10 +68,10 @@ void workers::fill_image(QImage& image) {
   }
 }
 
-void workers::render_image(int width, int height) {
-  QImage img(width, height, QImage::Format_RGB888);
+void workers::render_image(render_layout const& lay) {
+  QImage img(lay.m_img_width, lay.m_img_height, QImage::Format_RGB888);
   assert(m_cur_version <= m_max_version);
-  fill_image(img);
-  //m_perf_helper.profile([&] { fill_image(img); });
+  fill_image(img, lay);
+  // m_perf_helper.profile([&] { fill_image(img); });
   m_cur_version++;
 }
