@@ -5,6 +5,7 @@
 #include <QStatusBar>
 #include <QWidget>
 #include <iostream>
+#include <QCloseEvent>
 
 window::window(QWidget* parent) : QMainWindow(parent) {
   std::cout << std::fixed << std::setprecision(3);
@@ -36,6 +37,11 @@ window::window(QWidget* parent) : QMainWindow(parent) {
   connect(m_picture, &picture::render_image, this, &window::window_changed);
 
   setWindowTitle(tr("Mandelbrot Set"));
+}
+
+void window::closeEvent(QCloseEvent* event) {
+  m_picture->close();
+  event->accept();
 }
 
 void window::mouse_changed(QPointF const& mouse_pos) {

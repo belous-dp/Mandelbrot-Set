@@ -17,6 +17,9 @@ class window : public QMainWindow {
 public:
   explicit window(QWidget* parent = nullptr);
 
+protected:
+  void closeEvent(QCloseEvent* event) override;
+
 public slots:
   void mouse_changed(QPointF const& mouse_pos);
   void window_changed(render_layout const& lay);

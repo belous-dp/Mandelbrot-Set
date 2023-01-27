@@ -117,6 +117,12 @@ void picture::mouseReleaseEvent(QMouseEvent* event) {
   emit_signal();
 }
 
+void picture::closeEvent(QCloseEvent* event) {
+  lay = {};
+  emit_signal();
+  event->accept();
+}
+
 void picture::zoom_picture(double power) {
   constexpr static double zoom_coef = 0.7;
   double zoom_val = pow(zoom_coef, power);
