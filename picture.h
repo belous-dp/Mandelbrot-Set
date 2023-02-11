@@ -16,9 +16,7 @@ public:
   explicit picture(QWidget* parent = nullptr);
   ~picture();
 
-  render_layout get_layout() const {
-    return lay;
-  }
+  render_layout get_layout() const;
 
 protected:
   void paintEvent(QPaintEvent* event) override;
@@ -40,7 +38,7 @@ private:
   QThread m_workers_thread;
   workers m_workers;
   QImage m_image;
-  render_layout lay;
+  render_layout m_lay;
 
 private:
   constexpr static double INIT_MIN_X = -2;
@@ -48,7 +46,8 @@ private:
   constexpr static double INIT_MIN_Y = -1.5;
   constexpr static double INIT_MAX_Y = 1.5;
 
-  void emit_signal();
+  void emit_render_signal(std::string from);
+  void emit_stop_signal(std::string from);
   void reset_layout();
   void zoom_picture(double power);
 

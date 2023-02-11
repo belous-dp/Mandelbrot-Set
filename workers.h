@@ -31,8 +31,8 @@ public:
 
 private:
   constexpr static unsigned MAX_ITER = 2000;
-  constexpr static unsigned MIN_ITER = 15;
-  constexpr static unsigned NSTEPS = 10;
+  constexpr static unsigned MIN_ITER = 100;
+  //constexpr static unsigned NSTEPS = 10;
   constexpr static unsigned DELTA = 200;
 
   unsigned m_nthreads;

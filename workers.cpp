@@ -94,13 +94,18 @@ void workers::fill_image(QImage& image, render_layout const& lay) {
 }
 
 void workers::render_image(render_layout const& lay) {
+  if (lay.m_scale == 0) { // stop signal
+    // do nothing
+    m_cur_version++;
+    return;
+  }
   QImage img(lay.m_img_width, lay.m_img_height, QImage::Format_RGB888);
   assert(m_cur_version <= m_max_version);
   m_failed.store(false, std::memory_order_relaxed);
   fill_image(img, lay);
   //m_perf_helper.profile([&] {
     //m_failed.store(false, std::memory_order_relaxed);
-    //fill_image(img, lay);
+    //fill_image(img, m_lay);
   //});
   m_cur_version++;
 }
