@@ -1,12 +1,14 @@
 #include "perf_helper.h"
+#ifdef WIN32
 #include <Windows.h>
+#endif // WIN32
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 
 perf_helper::perf_helper() : commit_info("") {
   std::string filename = ".last_commit.info";
-#ifdef WIN32
+#ifdef WIN32 // todo linux
   // see https://learn.microsoft.com/en-us/windows/win32/procthread/creating-processes for more information
   STARTUPINFO si;
   PROCESS_INFORMATION pi;
