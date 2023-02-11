@@ -100,6 +100,10 @@ void picture::mouseMoveEvent(QMouseEvent* event) {
 
 void picture::mouseReleaseEvent(QMouseEvent* event) {
   QPointF delta = event->position() - m_press_pos;
+  if (delta == QPointF(0, 0)) {
+    //std::cout << "picture::mouseReleaseEvent. do nothing\n";
+    return;
+  }
   double px = delta.x() / lay.m_img_width;
   double py = delta.y() / lay.m_img_height;
   double lenx = lay.m_max_x - lay.m_min_x;

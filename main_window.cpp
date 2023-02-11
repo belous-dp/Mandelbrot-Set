@@ -9,7 +9,7 @@
 
 window::window(QWidget* parent) : QMainWindow(parent) {
   std::cout << std::fixed << std::setprecision(3);
-  resize(300, 200);
+  resize(900, 600);
 
   m_picture = new picture(this);
   setCentralWidget(m_picture);
