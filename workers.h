@@ -37,7 +37,7 @@ private:
   unsigned m_nthreads;
   coloring m_style{coloring::lecture};
 
-  perf_helper m_perf_helper;
+  //perf_helper m_perf_helper;
   std::atomic<unsigned int> m_cur_version{0};
   std::atomic<uint8_t> m_failed{false};
 

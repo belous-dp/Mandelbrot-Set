@@ -5,10 +5,14 @@ set(CMAKE_CXX_STANDARD 20)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
 qt_standard_project_setup()
+# file(COPY "QDarkStyleSheet/qdarkstyle/dark" DESTINATION "QDarkStyleSheet/qdarkstyle")
+# qt_add_resources(RESOURCES "QDarkStyleSheet/qdarkstyle/dark/darkstyle.qrc")
+set(CMAKE_AUTORCC ON)
+# file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/logs")
 
-add_executable(mandelbrot "main.cpp" "main_window.cpp" "picture.cpp" "perf_helper.cpp" "workers.cpp" "render_layout.cpp" "coloring.h")
-
-file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/logs")
+set(RESOURCES "QDarkStyleSheet/qdarkstyle/dark/darkstyle.qrc")
+add_executable(mandelbrot "main.cpp" "main_window.cpp" "picture.cpp" "perf_helper.cpp"
+                          "workers.cpp" "render_layout.cpp" ${RESOURCES})
 
 target_compile_options(mandelbrot PRIVATE -Wall)
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")

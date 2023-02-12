@@ -11,3 +11,6 @@ CMakeFiles/
 cmake-build*
 cmake_install.cmake
 Makefile
+/mandelbrot.ilk
+/mandelbrot.pdb
+/mandelbrot.exe
