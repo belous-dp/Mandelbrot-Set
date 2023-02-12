@@ -8,6 +8,7 @@
 #include <QSinglePointEvent>
 #include <QWheelEvent>
 #include <iostream>
+#include <cassert>
 
 picture::picture(QWidget* parent) : QWidget(parent) {
 
@@ -30,6 +31,7 @@ render_layout picture::get_layout() const {
 
 void picture::image_ready(QImage const& image) {
   m_image = image;
+  m_image_scale = 1.;
   std::cout << "picture::image_ready. updating (scheduling repaint)\n";
   update();
 }
@@ -92,20 +94,21 @@ void picture::paintEvent(QPaintEvent* event) {
   if (m_image.isNull()) {
     p.setPen(Qt::white);
     p.drawText(rect(), Qt::AlignCenter, tr("Initial rendering..."));
-  } else if (!m_image_delta.isNull() || !m_image.offset().isNull()) {
-    std::cout << "shifting, x=" << m_image.offset().x() + m_image_delta.x()
-              << ", y=" << m_image.offset().y() + m_image_delta.y() << ", scale=" << m_image_scale << '\n';
-    p.drawImage(m_image.offset().x() + m_image_delta.x(), m_image.offset().y() + m_image_delta.y(), m_image);
-  } else {
-    std::cout << "scaling, x=" << m_image.offset().x() + m_image_delta.x()
-              << ", y=" << m_image.offset().y() + m_image_delta.y() << ", scale=" << m_image_scale << '\n';
-    // the image itself can be scaled using `QImage.scaled()`, but that method would return
-    // a copy of the image
+  } else if (!qFuzzyCompare(m_image_scale, 1.)) {
+    std::cout << "scaling, scale=" << m_image_scale << '\n';
+    // the image itself can be scaled using `QImage.scaled()`,
+    // but that method returns a copy of the image.
     // so it'd be better to scale the coordinate system without copying the image
     // note: p.save() & p.restore() aren't needed cuz QPainter is resetted each paint event
-    p.scale(1 / m_image_scale, 1 / m_image_scale);
+    p.translate(m_image.offset());
+    p.scale(m_image_scale, m_image_scale);
     p.drawImage(0, 0, m_image);
-    m_image_scale = 1.;
+  } else if (!m_image_delta.isNull() || !m_image.offset().isNull()) {
+    std::cout << "shifting, x=" << m_image.offset().x() + m_image_delta.x()
+              << ", y=" << m_image.offset().y() + m_image_delta.y() << '\n';
+    p.drawImage(m_image.offset().x() + m_image_delta.x(), m_image.offset().y() + m_image_delta.y(), m_image);
+  } else {
+    p.drawImage(0, 0, m_image);
   }
 }
 
@@ -166,24 +169,42 @@ void picture::closeEvent(QCloseEvent* event) {
   emit_stop_signal("closeEvent");
   event->accept();
 }
+
 /**
  * zooms the picture the way that preserves relative cursor position
  * in other words, zooms into the cursor
  */
 void picture::zoom_picture(double power) {
+  // zooming formula:
+  // x0 = position before zoom, x1 = position after move,
+  // mx = mouse position in pixels, z = zoom factor,
+  // Lx = max_x_coordinate - min_x_coordinate,
+  // Sx = min_x_coordinate, W = screen width
+  // x0 = mx/W * Lx + Sx
+  // x1 = mx/W * Lz * z + Sx * z
+  // shift = x0 - x1 = (1 - z) * x0
+  // shift = (1 - z) * pixel_to_pos(mx)
+  // the same with y coordinate
+
+
   QPointF old_mouse_pos = pixel_to_pos(m_mouse_press_ppos, m_lay);
+
   constexpr static double zoom_coef = 0.85;
   double zoom_val = pow(zoom_coef, power);
-  m_image_scale *= zoom_val;
+  double scale_val = 1 / zoom_val;
+
   m_lay.m_min_x *= zoom_val;
   m_lay.m_max_x *= zoom_val;
   m_lay.m_min_y *= zoom_val;
   m_lay.m_max_y *= zoom_val;
-  QPointF shift = old_mouse_pos - pixel_to_pos(m_mouse_press_ppos, m_lay);
+  QPointF shift = (1 - zoom_val) * old_mouse_pos;
   m_lay.m_min_x += shift.x();
   m_lay.m_max_x += shift.x();
   m_lay.m_min_y += shift.y();
   m_lay.m_max_y += shift.y();
+
+  m_image_scale *= scale_val;
+  m_image.setOffset((m_image.offset().toPointF() * scale_val + (1 - scale_val) * m_mouse_press_ppos).toPoint());
   std::cout << "picture::zoom_picture. updating\n";
   update(); // here 'repaint()' can be called,
   // thus line "m_lay.m_scale = 1.;" in 'emit_render_signal()' can be removed.
