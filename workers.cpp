@@ -93,8 +93,8 @@ void workers::fill_image(QImage& image, render_layout const& lay) {
   }
 }
 
-void workers::render_image(render_layout const& lay) {
-  if (lay.m_scale == 0) { // stop signal
+void workers::render_image(render_layout const& lay) { // maybe it'd be better to pass a copy?
+  if (lay.is_null()) { // stop signal
     // do nothing
     m_cur_version++;
     return;

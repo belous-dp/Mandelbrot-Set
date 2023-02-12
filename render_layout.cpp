@@ -9,3 +9,7 @@ QPointF pixel_to_pos(QPointF const& pixel, render_layout const& lay) {
   res.setY(lay.m_min_y + ((lay.m_max_y - lay.m_min_y) * pixel.y()) / lay.m_img_height);
   return res;
 }
+
+bool render_layout::is_null() const {
+  return m_img_width == 0;
+}

@@ -9,7 +9,7 @@
 #include <QWheelEvent>
 #include <iostream>
 
-picture::picture(QWidget* parent) : QWidget(parent), m_image_pos({0, 0}) {
+picture::picture(QWidget* parent) : QWidget(parent) {
 
   reset_layout();
 
@@ -36,7 +36,6 @@ void picture::image_ready(QImage const& image) {
 
 void picture::emit_render_signal(std::string from) {
   std::cout << "picture::emit_render_signal from function " + from + '\n';
-  m_lay.m_scale = 1.;
   emit render_image(m_lay);
   m_workers.m_max_version++;
 }
@@ -47,14 +46,12 @@ void picture::emit_render_signal() {
 
 void picture::emit_stop_signal(std::string from) {
   std::cout << "picture::emit_stop_signal from function " + from + '\n';
-  m_lay.m_scale = 0;
-  emit render_image(m_lay);
+  emit render_image({});
   m_workers.m_max_version++;
 }
 void picture::emit_stop_signal() {
   std::cout << "picture::emit_stop_signal\n";
-  m_lay.m_scale = 0;
-  emit render_image(m_lay);
+  emit render_image({});
   m_workers.m_max_version++;
 }
 
@@ -70,11 +67,11 @@ void picture::resizeEvent(QResizeEvent* event) {
 }
 
 void picture::reset_layout() {
+  m_image_scale = 1.;
   m_lay.m_min_x = INIT_MIN_X;
   m_lay.m_max_x = INIT_MAX_X;
   m_lay.m_min_y = INIT_MIN_Y;
   m_lay.m_max_y = INIT_MAX_Y;
-  m_lay.m_scale = 1.;
   m_lay.m_img_width = width();
   m_lay.m_img_height = height();
   if (width() < (m_lay.m_max_x - m_lay.m_min_x) * height() / (m_lay.m_max_y - m_lay.m_min_y)) {
@@ -93,18 +90,22 @@ void picture::paintEvent(QPaintEvent* event) {
   p.fillRect(rect(), Qt::black);
   std::cout << "picture::paintEvent: ";
   if (m_image.isNull()) {
-     std::cout << "initial painting\n"; // todo remove cuz useless?
     p.setPen(Qt::white);
     p.drawText(rect(), Qt::AlignCenter, tr("Initial rendering..."));
+  } else if (!m_image_delta.isNull() || !m_image.offset().isNull()) {
+    std::cout << "shifting, x=" << m_image.offset().x() + m_image_delta.x()
+              << ", y=" << m_image.offset().y() + m_image_delta.y() << ", scale=" << m_image_scale << '\n';
+    p.drawImage(m_image.offset().x() + m_image_delta.x(), m_image.offset().y() + m_image_delta.y(), m_image);
   } else {
-    std::cout << "redrawing, x=" << m_image_pos.x() << ", y=" << m_image_pos.y() << '\n';
+    std::cout << "scaling, x=" << m_image.offset().x() + m_image_delta.x()
+              << ", y=" << m_image.offset().y() + m_image_delta.y() << ", scale=" << m_image_scale << '\n';
     // the image itself can be scaled using `QImage.scaled()`, but that method would return
     // a copy of the image
     // so it'd be better to scale the coordinate system without copying the image
-    p.scale(m_lay.m_scale, m_lay.m_scale);
-    p.drawImage(m_image_pos.x(), m_image_pos.y(), m_image);
-    m_image_pos = {0, 0};
-    m_lay.m_scale = 1.;
+    // note: p.save() & p.restore() aren't needed cuz QPainter is resetted each paint event
+    p.scale(1 / m_image_scale, 1 / m_image_scale);
+    p.drawImage(0, 0, m_image);
+    m_image_scale = 1.;
   }
 }
 
@@ -125,39 +126,38 @@ void picture::mousePressEvent(QMouseEvent* event) {
 
 void picture::update_mouse(QSinglePointEvent const* event) {
   emit_stop_signal();
-  m_mouse_pix_pos = event->position();
-  emit mouse_pos_changed(pixel_to_pos(m_mouse_pix_pos, m_lay));
+  m_mouse_press_ppos = event->position();
+  //emit mouse_pos_changed(pixel_to_pos(m_mouse_press_ppos, m_lay));
 }
 
 void picture::mouseMoveEvent(QMouseEvent* event) {
   if (event->buttons() & Qt::LeftButton) {
-    QPointF image_pos = event->position() - m_mouse_pix_pos;
-    m_image_pos.setX(static_cast<int>(image_pos.x()));
-    m_image_pos.setY(static_cast<int>(image_pos.y()));
-    emit mouse_pos_changed(pixel_to_pos(m_mouse_pix_pos, m_lay));
+    m_image_delta = (event->position() - m_mouse_press_ppos).toPoint();
+    //emit mouse_pos_changed(pixel_to_pos(m_mouse_press_ppos + delta, m_lay));
     std::cout << "picture::mouseMoveEvent. updating\n";
     update();
   }
 }
 
 void picture::mouseReleaseEvent(QMouseEvent* event) {
-  QPointF delta = event->position() - m_mouse_pix_pos;
-  if (delta == QPointF(0, 0)) {
-    // std::cout << "picture::mouseReleaseEvent. do nothing\n";
+  m_image_delta = (event->position() - m_mouse_press_ppos).toPoint();
+  if (m_image_delta == QPoint(0, 0)) {
+    std::cout << "picture::mouseReleaseEvent. do nothing\n";
     return;
   }
-  double px = delta.x() / m_lay.m_img_width;
-  double py = delta.y() / m_lay.m_img_height;
+  //emit mouse_pos_changed(pixel_to_pos(m_mouse_press_ppos + delta, m_lay));
+  double px = static_cast<double>(m_image_delta.x()) / m_lay.m_img_width;
+  double py = static_cast<double>(m_image_delta.y()) / m_lay.m_img_height;
   double lenx = m_lay.m_max_x - m_lay.m_min_x;
   double leny = m_lay.m_max_y - m_lay.m_min_y;
   m_lay.m_min_x -= lenx * px;
   m_lay.m_max_x -= lenx * px;
   m_lay.m_min_y -= leny * py;
   m_lay.m_max_y -= leny * py;
-  emit mouse_pos_changed(pixel_to_pos(m_mouse_pix_pos, m_lay));
-  // std::cout << "picture::mouseReleaseEvent. updating\n";
-  m_image_pos.setX(static_cast<int>(delta.x()));
-  m_image_pos.setY(static_cast<int>(delta.y()));
+
+  m_image.setOffset(m_image.offset() + m_image_delta);
+  m_image_delta = {0, 0};
+  std::cout << "picture::mouseReleaseEvent. updating\n";
   update();
   emit_render_signal("mouseReleaseEvent");
 }
@@ -171,15 +171,15 @@ void picture::closeEvent(QCloseEvent* event) {
  * in other words, zooms into the cursor
  */
 void picture::zoom_picture(double power) {
-  QPointF old_mouse_pos = pixel_to_pos(m_mouse_pix_pos, m_lay);
+  QPointF old_mouse_pos = pixel_to_pos(m_mouse_press_ppos, m_lay);
   constexpr static double zoom_coef = 0.85;
   double zoom_val = pow(zoom_coef, power);
+  m_image_scale *= zoom_val;
   m_lay.m_min_x *= zoom_val;
   m_lay.m_max_x *= zoom_val;
   m_lay.m_min_y *= zoom_val;
   m_lay.m_max_y *= zoom_val;
-  m_lay.m_scale *= zoom_val;
-  QPointF shift = old_mouse_pos - pixel_to_pos(m_mouse_pix_pos, m_lay);
+  QPointF shift = old_mouse_pos - pixel_to_pos(m_mouse_press_ppos, m_lay);
   m_lay.m_min_x += shift.x();
   m_lay.m_max_x += shift.x();
   m_lay.m_min_y += shift.y();
