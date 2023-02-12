@@ -5,6 +5,7 @@
 #include "picture.h"
 #include <QPainter>
 #include <QResizeEvent>
+#include <QSinglePointEvent>
 #include <QWheelEvent>
 #include <iostream>
 
@@ -29,31 +30,42 @@ render_layout picture::get_layout() const {
 
 void picture::image_ready(QImage const& image) {
   m_image = image;
-  // std::cout << "picture::image_ready. updating (scheduling repaint)\n";
+  std::cout << "picture::image_ready. updating (scheduling repaint)\n";
   update();
 }
 
 void picture::emit_render_signal(std::string from) {
-  // std::cout << "picture::emit_render_signal from function " + from + '\n';
+  std::cout << "picture::emit_render_signal from function " + from + '\n';
+  m_lay.m_scale = 1.;
+  emit render_image(m_lay);
+  m_workers.m_max_version++;
+}
+void picture::emit_render_signal() {
   emit render_image(m_lay);
   m_workers.m_max_version++;
 }
 
 void picture::emit_stop_signal(std::string from) {
-  // std::cout << "picture::emit_stop_signal from function " + from + '\n';
+  std::cout << "picture::emit_stop_signal from function " + from + '\n';
+  m_lay.m_scale = 0;
+  emit render_image(m_lay);
+  m_workers.m_max_version++;
+}
+void picture::emit_stop_signal() {
+  std::cout << "picture::emit_stop_signal\n";
   m_lay.m_scale = 0;
   emit render_image(m_lay);
   m_workers.m_max_version++;
 }
 
 void picture::resizeEvent(QResizeEvent* event) {
-  // std::cout << "picture::resizeEvent: ";
+  std::cout << "picture::resizeEvent: ";
   if (event->oldSize().width() != width() || event->oldSize().height() != height()) {
-    // std::cout << "new size\n";
+    std::cout << "new size\n";
     reset_layout();
     emit_render_signal("resizeEvent");
   } else {
-    // std::cout << "same size\n";
+    std::cout << "same size\n";
   }
 }
 
@@ -79,13 +91,17 @@ void picture::reset_layout() {
 void picture::paintEvent(QPaintEvent* event) {
   QPainter p(this);
   p.fillRect(rect(), Qt::black);
-  // std::cout << "picture::paintEvent: ";
+  std::cout << "picture::paintEvent: ";
   if (m_image.isNull()) {
-    // std::cout << "initial painting\n"; // todo remove cuz useless?
+     std::cout << "initial painting\n"; // todo remove cuz useless?
     p.setPen(Qt::white);
     p.drawText(rect(), Qt::AlignCenter, tr("Initial rendering..."));
   } else {
-    // std::cout << "redrawing, x=" << m_image_pos.x() << ", y=" << m_image_pos.y() << '\n';
+    std::cout << "redrawing, x=" << m_image_pos.x() << ", y=" << m_image_pos.y() << '\n';
+    // the image itself can be scaled using `QImage.scaled()`, but that method would return
+    // a copy of the image
+    // so it'd be better to scale the coordinate system without copying the image
+    p.scale(m_lay.m_scale, m_lay.m_scale);
     p.drawImage(m_image_pos.x(), m_image_pos.y(), m_image);
     m_image_pos = {0, 0};
     m_lay.m_scale = 1.;
@@ -93,6 +109,8 @@ void picture::paintEvent(QPaintEvent* event) {
 }
 
 void picture::wheelEvent(QWheelEvent* event) {
+  std::cout << "picture::wheelEvent\n";
+  update_mouse(event);
   int degrees = event->angleDelta().y() / 8;
   double steps = degrees / 15.;
   zoom_picture(steps);
@@ -100,26 +118,30 @@ void picture::wheelEvent(QWheelEvent* event) {
 
 void picture::mousePressEvent(QMouseEvent* event) {
   if (event->button() == Qt::LeftButton) {
-    // std::cout << "picture::mousePressEvent\n";
-    m_press_pos = event->position();
-    emit_stop_signal("mousePressEvent");
-    emit mouse_pos_changed(pixel_to_pos(m_press_pos, m_lay));
+    std::cout << "picture::mousePressEvent\n";
+    update_mouse(event);
   }
+}
+
+void picture::update_mouse(QSinglePointEvent const* event) {
+  emit_stop_signal();
+  m_mouse_pix_pos = event->position();
+  emit mouse_pos_changed(pixel_to_pos(m_mouse_pix_pos, m_lay));
 }
 
 void picture::mouseMoveEvent(QMouseEvent* event) {
   if (event->buttons() & Qt::LeftButton) {
-    QPointF image_pos = event->position() - m_press_pos;
+    QPointF image_pos = event->position() - m_mouse_pix_pos;
     m_image_pos.setX(static_cast<int>(image_pos.x()));
     m_image_pos.setY(static_cast<int>(image_pos.y()));
-    emit mouse_pos_changed(pixel_to_pos(m_press_pos, m_lay));
-    // std::cout << "picture::mouseMoveEvent. updating\n";
+    emit mouse_pos_changed(pixel_to_pos(m_mouse_pix_pos, m_lay));
+    std::cout << "picture::mouseMoveEvent. updating\n";
     update();
   }
 }
 
 void picture::mouseReleaseEvent(QMouseEvent* event) {
-  QPointF delta = event->position() - m_press_pos;
+  QPointF delta = event->position() - m_mouse_pix_pos;
   if (delta == QPointF(0, 0)) {
     // std::cout << "picture::mouseReleaseEvent. do nothing\n";
     return;
@@ -132,7 +154,7 @@ void picture::mouseReleaseEvent(QMouseEvent* event) {
   m_lay.m_max_x -= lenx * px;
   m_lay.m_min_y -= leny * py;
   m_lay.m_max_y -= leny * py;
-  emit mouse_pos_changed(pixel_to_pos(m_press_pos, m_lay));
+  emit mouse_pos_changed(pixel_to_pos(m_mouse_pix_pos, m_lay));
   // std::cout << "picture::mouseReleaseEvent. updating\n";
   m_image_pos.setX(static_cast<int>(delta.x()));
   m_image_pos.setY(static_cast<int>(delta.y()));
@@ -144,8 +166,12 @@ void picture::closeEvent(QCloseEvent* event) {
   emit_stop_signal("closeEvent");
   event->accept();
 }
-
+/**
+ * zooms the picture the way that preserves relative cursor position
+ * in other words, zooms into the cursor
+ */
 void picture::zoom_picture(double power) {
+  QPointF old_mouse_pos = pixel_to_pos(m_mouse_pix_pos, m_lay);
   constexpr static double zoom_coef = 0.85;
   double zoom_val = pow(zoom_coef, power);
   m_lay.m_min_x *= zoom_val;
@@ -153,7 +179,15 @@ void picture::zoom_picture(double power) {
   m_lay.m_min_y *= zoom_val;
   m_lay.m_max_y *= zoom_val;
   m_lay.m_scale *= zoom_val;
-  // std::cout << "picture::zoom_picture. updating\n";
-  update();
+  QPointF shift = old_mouse_pos - pixel_to_pos(m_mouse_pix_pos, m_lay);
+  m_lay.m_min_x += shift.x();
+  m_lay.m_max_x += shift.x();
+  m_lay.m_min_y += shift.y();
+  m_lay.m_max_y += shift.y();
+  std::cout << "picture::zoom_picture. updating\n";
+  update(); // here 'repaint()' can be called,
+  // thus line "m_lay.m_scale = 1.;" in 'emit_render_signal()' can be removed.
+  // but i think 'update()' is sligthly better than 'repaint()'
+  // in terms of performance
   emit_render_signal("zoom_picture");
 }

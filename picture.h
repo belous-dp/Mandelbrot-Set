@@ -9,6 +9,8 @@
 #include <QThread>
 #include <QWidget>
 
+struct QSinglePointEvent;
+
 class picture : public QWidget {
   Q_OBJECT
 
@@ -47,10 +49,13 @@ private:
   constexpr static double INIT_MAX_Y = 1.5;
 
   void emit_render_signal(std::string from);
+  void emit_render_signal();
   void emit_stop_signal(std::string from);
+  void emit_stop_signal();
   void reset_layout();
+  void update_mouse(QSinglePointEvent const* event);
   void zoom_picture(double power);
 
-  QPointF m_press_pos;
+  QPointF m_mouse_pix_pos;
   QPoint m_image_pos;
 };
