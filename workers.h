@@ -35,7 +35,7 @@ private:
   unsigned iter_step = 100;
 
   unsigned m_nthreads;
-  coloring m_style{coloring::lecture};
+  coloring m_style{coloring::fiery};
 
   //perf_helper m_perf_helper;
   std::atomic<unsigned int> m_cur_version{0};

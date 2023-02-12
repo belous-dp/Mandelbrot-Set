@@ -31,7 +31,7 @@ protected:
 
 public slots:
   void style1();
-  //void style2();
+  void style2();
   //void style3();
 
 private slots:

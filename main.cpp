@@ -12,8 +12,6 @@ int main(int argc, char* argv[]) {
   window window;
   window.show();
 
-  //Q_INIT_RESOURCE(darkstyle);
-  //QFile f(":darkstyle.qss");
   QFile f(":qdarkstyle/dark/darkstyle.qss");
   if (!f.exists()) {
     qWarning() << "Unable to set dark stylesheet: file not found";

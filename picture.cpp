@@ -213,6 +213,12 @@ void picture::zoom_picture(double power) {
 
 void picture::style1() {
   emit_stop_signal();
-  emit change_style(coloring::classic);
+  emit change_style(coloring::pure);
+  emit_render_signal();
+}
+
+void picture::style2() {
+  emit_stop_signal();
+  emit change_style(coloring::fiery);
   emit_render_signal();
 }

@@ -31,6 +31,12 @@ window::window(QWidget* parent) : QMainWindow(parent) {
   connect(m_style1_act, &QAction::triggered, m_picture, &picture::style1);
   m_style_menu->addAction(m_style1_act);
 
+  m_style2_act = new QAction(tr("&Fiery"), this);
+  m_style2_act->setShortcut(QKeySequence(Qt::Key_2));
+  m_style2_act->setStatusTip(tr("Simple red coloring"));
+  connect(m_style2_act, &QAction::triggered, m_picture, &picture::style2);
+  m_style_menu->addAction(m_style2_act);
+
   menuBar()->addMenu(m_style_menu);
 
   // === configuring status bar ===

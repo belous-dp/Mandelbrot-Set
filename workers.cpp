@@ -38,7 +38,7 @@ int get_escape_rate(QPointF const& pixel, unsigned cur_img_version, unsigned num
 }
 
 void color_pixel(uchar*& p, coloring style, int iter, int max) {
-  if (style == coloring::classic) {
+  if (style == coloring::pure) {
     //double val = 1 - iter / static_cast<double>(max);
     //*p++ = 0;
     //*p++ = static_cast<uchar>(val * 0xff);
@@ -48,7 +48,7 @@ void color_pixel(uchar*& p, coloring style, int iter, int max) {
     } else {
       *p++ = *p++ = *p++ = static_cast<uchar>(0xff);
     }
-  } else if (style == coloring::lecture) {
+  } else if (style == coloring::fiery) {
     int bottom = 50;
     double val = iter == max ? 0 : ((iter % (bottom + 1)) / static_cast<double>(bottom));
     *p++ = static_cast<uchar>(val * 0xff);
