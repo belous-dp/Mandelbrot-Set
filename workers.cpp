@@ -14,20 +14,7 @@ void workers::set_nthreads(unsigned nthreads) {
   }
 }
 
-void workers::set_styling(styling style) {
-  m_style = style;
-}
-
-double color_it(styling style, int iter, int max) {
-  if (style == styling::classic) {
-    return 1 - iter / static_cast<double>(max);
-  } else if (style == styling::lecture) {
-    int bottom = 50;
-    return iter == max ? 0 : ((iter % (bottom + 1)) / static_cast<double>(bottom));
-  }
-}
-
-double get_escape_rate(QPointF const& pixel, unsigned cur_img_version, unsigned num_iterations, styling style,
+int get_escape_rate(QPointF const& pixel, unsigned cur_img_version, unsigned num_iterations,
                        render_layout const& lay, std::atomic<unsigned>& m_max_version) {
 
   QPointF c = pixel_to_pos(pixel, lay);
@@ -47,24 +34,37 @@ double get_escape_rate(QPointF const& pixel, unsigned cur_img_version, unsigned 
     y2 = y * y;
     iteration++;
   }
-  return color_it(style, iteration, num_iterations);
+  return iteration;
 }
 
-void fill_image_chunk(uchar* data, qsizetype bytes_per_line, int line, int height, styling style, render_layout lay,
+void color_pixel(uchar*& p, coloring style, int iter, int max) {
+  if (style == coloring::classic) {
+    double val = 1 - iter / static_cast<double>(max);
+    *p++ = 0;
+    *p++ = static_cast<uchar>(val * 0.3 * 0xff);
+    *p++ = static_cast<uchar>(val * 0xff);
+  } else if (style == coloring::lecture) {
+    int bottom = 50;
+    double val = iter == max ? 0 : ((iter % (bottom + 1)) / static_cast<double>(bottom));
+    *p++ = static_cast<uchar>(val * 0xff);
+    *p++ = static_cast<uchar>(val * 0.3 * 0xff);
+    *p++ = 0;
+  }
+}
+
+void fill_image_chunk(uchar* data, qsizetype bytes_per_line, int line, int height, coloring style, render_layout lay,
                       unsigned num_iter, std::atomic<unsigned>& m_cur_version, std::atomic<unsigned>& m_max_version,
                       std::atomic<uint8_t>& m_failed) {
   for (int y = 0; y < height; ++y) {
     uchar* p = data + y * bytes_per_line;
     for (int x = 0; x < lay.m_img_size.width(); ++x) {
-      double escape_rate = get_escape_rate(QPointF(x, y + line), m_cur_version.load(std::memory_order_relaxed),
-                                           num_iter, style, lay, m_max_version);
-      if (escape_rate < -0.5 || m_failed.load(std::memory_order_relaxed)) {
+      int iterations = get_escape_rate(QPointF(x, y + line), m_cur_version.load(std::memory_order_relaxed),
+                                           num_iter, lay, m_max_version);
+      if (iterations < 0 || m_failed.load(std::memory_order_relaxed)) {
         m_failed.fetch_or(true, std::memory_order_relaxed);
         return;
       }
-      *p++ = static_cast<uchar>(escape_rate * 0xff);
-      *p++ = static_cast<uchar>(escape_rate * 0.3 * 0xff);
-      *p++ = 0;
+      color_pixel(p, style, iterations, num_iter);
     }
   }
 }
@@ -96,7 +96,7 @@ void workers::fill_image(QImage& image, render_layout const& lay) {
 }
 
 void workers::render_image(render_layout const& lay, double scale_factor) { // maybe it'd be better to pass a copy?
-  if (lay.is_null()) {                                 // stop signal
+  if (lay.is_null()) { // stop signal
     // do nothing
     m_cur_version++;
     return;
@@ -129,4 +129,8 @@ void workers::render_image(render_layout const& lay, double scale_factor) { // m
   }
   std::cout << iter_start << ' ' << iter_step << std::endl;
   m_cur_version++;
+}
+
+void workers::set_style(coloring style) {
+  m_style = style;
 }

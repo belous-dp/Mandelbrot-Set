@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
 qt_standard_project_setup()
 
-add_executable(mandelbrot "main.cpp" "main_window.cpp" "picture.cpp" "perf_helper.cpp" "workers.cpp" "render_layout.cpp")
+add_executable(mandelbrot "main.cpp" "main_window.cpp" "picture.cpp" "perf_helper.cpp" "workers.cpp" "render_layout.cpp" "coloring.h")
 
 file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/logs")
 

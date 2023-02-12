@@ -9,18 +9,36 @@
 
 window::window(QWidget* parent) : QMainWindow(parent) {
   std::cout << std::fixed << std::setprecision(3);
+
+  // === configuring picture ===
+
   resize(900, 600);
 
   m_picture = new picture(this);
   setCentralWidget(m_picture);
 
-  // todo
-  // m_nthreads_menu = new QMenu("Number of threads", this);
-  // menuBar()->addMenu(m_nthreads_menu);
+  // === configuring menus ===
 
-  statusBar()->setStyleSheet("background-color: black;");
+  //menuBar()->setStyleSheet(tr("background-color: #505050; color: white;"));
+
+  // style
+  m_style_menu = new QMenu(tr("&Coloring"), this);
+  //m_style_menu->setStyleSheet(tr("QMenu { background-color: #505050; color: white; }"));
+
+  m_style1_act = new QAction(tr("&Pure"), this);
+  m_style1_act->setShortcut(QKeySequence(Qt::Key_1));
+  m_style1_act->setStatusTip(tr("Binary coloring"));
+  connect(m_style1_act, &QAction::triggered, m_picture, &picture::style1);
+  m_style_menu->addAction(m_style1_act);
+
+  menuBar()->addMenu(m_style_menu);
+
+  // === configuring status bar ===
+
+  statusBar()->setStyleSheet(tr("background-color: black;"));
   std::string qlabel_style_sheet = "QLabel { background-color: black; color: white; font-size: 13pt; }";
 
+  // mouse position
   m_position_label = new QLabel(this);
   m_position_label->setText(tr("Position: X=0.0, Y=0.0"));
   m_position_label->setAlignment(Qt::AlignLeft);
@@ -30,7 +48,8 @@ window::window(QWidget* parent) : QMainWindow(parent) {
 
   QLabel* spacer = new QLabel(this);
   statusBar()->addPermanentWidget(spacer, 1);
-
+  
+  // information about image
   m_img_info_label = new QLabel(this);
   m_img_info_label->setText(tr("Image size: minX=0.0, maxX=0.0, minY=0.0, maxY=0.0"));
   m_img_info_label->setAlignment(Qt::AlignRight);

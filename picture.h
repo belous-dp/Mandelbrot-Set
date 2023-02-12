@@ -29,11 +29,17 @@ protected:
   void mouseReleaseEvent(QMouseEvent* event) override;
   void closeEvent(QCloseEvent* event) override;
 
+public slots:
+  void style1();
+  //void style2();
+  //void style3();
+
 private slots:
   void image_ready(QImage const& image);
 
 signals:
   void render_image(render_layout const& lay, double scale_factor);
+  void change_style(coloring style);
   void mouse_pos_changed(QPointF const& mouse_pos);
   void window_changed(render_layout const& lay);
 
@@ -43,7 +49,6 @@ private:
   QImage m_image;
   render_layout m_lay;
 
-private:
   constexpr static QPointF INIT_MIN = {-2, -1.5};
   constexpr static QPointF INIT_MAX = {1, 1.5};
 

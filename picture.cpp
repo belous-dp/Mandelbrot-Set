@@ -16,6 +16,7 @@ picture::picture(QWidget* parent) : QWidget(parent) {
 
   m_workers.moveToThread(&m_workers_thread);
   connect(this, &picture::render_image, &m_workers, &workers::render_image);
+  connect(this, &picture::change_style, &m_workers, &workers::set_style);
   connect(&m_workers, &workers::image_ready, this, &picture::image_ready);
   m_workers_thread.start();
 }
@@ -208,4 +209,10 @@ void picture::zoom_picture(double power) {
   // but i think 'update()' is sligthly better than 'repaint()'
   // in terms of performance
   emit_render_signal("zoom_picture");
+}
+
+void picture::style1() {
+  emit_stop_signal();
+  emit change_style(coloring::classic);
+  emit_render_signal();
 }

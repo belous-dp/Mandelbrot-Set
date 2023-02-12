@@ -27,8 +27,10 @@ public slots:
 
 private:
   picture* m_picture;
+  QMenu* m_style_menu;
+  QAction* m_style1_act;
+  QAction* m_style2_act;
+  QAction* m_style3_act;
   QLabel* m_position_label;
   QLabel* m_img_info_label;
-  // QMenu* m_nthreads_menu;
-  // QMenu* m_style_menu;
 };
