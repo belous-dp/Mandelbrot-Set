@@ -33,7 +33,7 @@ private slots:
   void image_ready(QImage const& image);
 
 signals:
-  void render_image(render_layout const& lay);
+  void render_image(render_layout const& lay, double scale_factor);
   void mouse_pos_changed(QPointF const& mouse_pos);
   void window_changed(render_layout const& lay);
 

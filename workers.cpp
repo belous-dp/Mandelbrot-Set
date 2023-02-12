@@ -4,6 +4,7 @@
 
 #include "workers.h"
 #include <cassert>
+#include <iostream>
 
 workers::workers() : m_nthreads(std::thread::hardware_concurrency()) {}
 
@@ -73,8 +74,8 @@ void workers::fill_image(QImage& image, render_layout const& lay) {
   std::size_t lines_per_thread = lay.m_img_size.height() / hard_workers.size();
   uchar* data = image.bits();
   qsizetype bytes_per_line = image.bytesPerLine();
-  unsigned iter = MIN_ITER;
-  while (iter <= MAX_ITER) {
+  unsigned iter = iter_start;
+  for (unsigned iter = iter_start, step = 0; step < NSTEPS && (step < 2 || iter < STOP); iter += iter_step, ++step) {
     for (std::size_t i = 0, lc = 0; i < hard_workers.size(); ++i, lc += lines_per_thread) {
       int height = lines_per_thread;
       if (i + 1 == hard_workers.size()) {
@@ -88,12 +89,13 @@ void workers::fill_image(QImage& image, render_layout const& lay) {
     }
     if (!m_failed.load(std::memory_order_relaxed)) {
       emit image_ready(image);
+    } else {
+      break;
     }
-    iter += DELTA;
   }
 }
 
-void workers::render_image(render_layout const& lay) { // maybe it'd be better to pass a copy?
+void workers::render_image(render_layout const& lay, double scale_factor) { // maybe it'd be better to pass a copy?
   if (lay.is_null()) {                                 // stop signal
     // do nothing
     m_cur_version++;
@@ -107,5 +109,24 @@ void workers::render_image(render_layout const& lay) { // maybe it'd be better t
     //m_failed.store(false, std::memory_order_relaxed);
     //fill_image(img, m_lay);
   //});
+  if (scale_factor >= 1) {
+    if (iter_start < 2000) {
+      scale_factor = log(scale_factor) / (1 + log(scale_factor)) / 2.5;
+    } else {
+      scale_factor = (atan(scale_factor) - atan(1)) / 10;
+    }
+    iter_start *= (1 + scale_factor);
+    iter_step *= (1 + scale_factor / 2.2);
+  } else {
+    assert(scale_factor >= 0);
+    if (iter_start < 2000) {
+      scale_factor = -log(scale_factor) / (1 - log(scale_factor)) / 2.5;
+    } else {
+      scale_factor = (atan(1 / scale_factor) - atan(1)) / 10;
+    }
+    iter_start /= (1 + scale_factor);
+    iter_step /= (1 + scale_factor / 2.2);
+  }
+  std::cout << iter_start << ' ' << iter_step << std::endl;
   m_cur_version++;
 }

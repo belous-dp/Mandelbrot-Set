@@ -38,22 +38,22 @@ void picture::image_ready(QImage const& image) {
 
 void picture::emit_render_signal(std::string from) {
   std::cout << "picture::emit_render_signal from function " + from + '\n';
-  emit render_image(m_lay);
+  emit render_image(m_lay, m_image_scale);
   m_workers.m_max_version++;
 }
 void picture::emit_render_signal() {
-  emit render_image(m_lay);
+  emit render_image(m_lay, m_image_scale);
   m_workers.m_max_version++;
 }
 
 void picture::emit_stop_signal(std::string from) {
   std::cout << "picture::emit_stop_signal from function " + from + '\n';
-  emit render_image({});
+  emit render_image({}, m_image_scale);
   m_workers.m_max_version++;
 }
 void picture::emit_stop_signal() {
   std::cout << "picture::emit_stop_signal\n";
-  emit render_image({});
+  emit render_image({}, m_image_scale);
   m_workers.m_max_version++;
 }
 
@@ -106,6 +106,7 @@ void picture::paintEvent(QPaintEvent* event) {
               << ", y=" << m_image.offset().y() + m_image_delta.y() << '\n';
     p.drawImage(m_image.offset().x() + m_image_delta.x(), m_image.offset().y() + m_image_delta.y(), m_image);
   } else {
+    std::cout << "\n";
     p.drawImage(0, 0, m_image);
   }
 }

@@ -18,7 +18,7 @@ public:
   workers();
 
 public slots:
-  void render_image(render_layout const& lay);
+  void render_image(render_layout const& lay, double scale_factor);
 
 signals:
   void image_ready(QImage const& image);
@@ -30,10 +30,10 @@ public:
   void set_styling(styling style);
 
 private:
-  constexpr static unsigned MAX_ITER = 2000;
-  constexpr static unsigned MIN_ITER = 2000;
-  //constexpr static unsigned NSTEPS = 10;
-  constexpr static unsigned DELTA = 200;
+  constexpr static unsigned NSTEPS = 10;
+  constexpr static unsigned STOP = 6000;
+  unsigned iter_start = 100;
+  unsigned iter_step = 100;
 
   unsigned m_nthreads;
   styling m_style{styling::lecture};
