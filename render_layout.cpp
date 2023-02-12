@@ -5,11 +5,19 @@
 
 QPointF pixel_to_pos(QPointF const& pixel, render_layout const& lay) {
   QPointF res;
-  res.setX(lay.m_min_x + ((lay.m_max_x - lay.m_min_x) * pixel.x()) / lay.m_img_width);
-  res.setY(lay.m_min_y + ((lay.m_max_y - lay.m_min_y) * pixel.y()) / lay.m_img_height);
+  res.setX(lay.m_min.x() + (lay.len_x() * pixel.x()) / lay.m_img_size.width());
+  res.setY(lay.m_min.y() + (lay.len_y() * pixel.y()) / lay.m_img_size.height());
   return res;
 }
 
 bool render_layout::is_null() const {
-  return m_img_width == 0;
+  return m_img_size.isEmpty();
+}
+
+double render_layout::len_x() const {
+  return m_max.x() - m_min.x();
+}
+
+double render_layout::len_y() const {
+  return m_max.y() - m_min.y();
 }

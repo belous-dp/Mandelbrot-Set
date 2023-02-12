@@ -54,7 +54,7 @@ void fill_image_chunk(uchar* data, qsizetype bytes_per_line, int line, int heigh
                       std::atomic<uint8_t>& m_failed) {
   for (int y = 0; y < height; ++y) {
     uchar* p = data + y * bytes_per_line;
-    for (int x = 0; x < lay.m_img_width; ++x) {
+    for (int x = 0; x < lay.m_img_size.width(); ++x) {
       double escape_rate = get_escape_rate(QPointF(x, y + line), m_cur_version.load(std::memory_order_relaxed),
                                            num_iter, style, lay, m_max_version);
       if (escape_rate < -0.5 || m_failed.load(std::memory_order_relaxed)) {
@@ -70,7 +70,7 @@ void fill_image_chunk(uchar* data, qsizetype bytes_per_line, int line, int heigh
 
 void workers::fill_image(QImage& image, render_layout const& lay) {
   std::vector<std::thread> hard_workers(m_nthreads);
-  std::size_t lines_per_thread = lay.m_img_height / hard_workers.size();
+  std::size_t lines_per_thread = lay.m_img_size.height() / hard_workers.size();
   uchar* data = image.bits();
   qsizetype bytes_per_line = image.bytesPerLine();
   unsigned iter = MIN_ITER;
@@ -78,7 +78,7 @@ void workers::fill_image(QImage& image, render_layout const& lay) {
     for (std::size_t i = 0, lc = 0; i < hard_workers.size(); ++i, lc += lines_per_thread) {
       int height = lines_per_thread;
       if (i + 1 == hard_workers.size()) {
-        height += lay.m_img_height % hard_workers.size();
+        height += lay.m_img_size.height() % hard_workers.size();
       }
       hard_workers[i] = std::thread(&fill_image_chunk, data + lc * bytes_per_line, bytes_per_line, lc, height, m_style,
                                     lay, iter, std::ref(m_cur_version), std::ref(m_max_version), std::ref(m_failed));
@@ -94,12 +94,12 @@ void workers::fill_image(QImage& image, render_layout const& lay) {
 }
 
 void workers::render_image(render_layout const& lay) { // maybe it'd be better to pass a copy?
-  if (lay.is_null()) { // stop signal
+  if (lay.is_null()) {                                 // stop signal
     // do nothing
     m_cur_version++;
     return;
   }
-  QImage img(lay.m_img_width, lay.m_img_height, QImage::Format_RGB888);
+  QImage img(lay.m_img_size.width(), lay.m_img_size.height(), QImage::Format_RGB888);
   assert(m_cur_version <= m_max_version);
   m_failed.store(false, std::memory_order_relaxed);
   fill_image(img, lay);

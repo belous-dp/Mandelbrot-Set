@@ -7,8 +7,8 @@
 #include <QResizeEvent>
 #include <QSinglePointEvent>
 #include <QWheelEvent>
-#include <iostream>
 #include <cassert>
+#include <iostream>
 
 picture::picture(QWidget* parent) : QWidget(parent) {
 
@@ -70,21 +70,19 @@ void picture::resizeEvent(QResizeEvent* event) {
 
 void picture::reset_layout() {
   m_image_scale = 1.;
-  m_lay.m_min_x = INIT_MIN_X;
-  m_lay.m_max_x = INIT_MAX_X;
-  m_lay.m_min_y = INIT_MIN_Y;
-  m_lay.m_max_y = INIT_MAX_Y;
-  m_lay.m_img_width = width();
-  m_lay.m_img_height = height();
-  if (width() < (m_lay.m_max_x - m_lay.m_min_x) * height() / (m_lay.m_max_y - m_lay.m_min_y)) {
-    double coord_height = ((m_lay.m_max_x - m_lay.m_min_x) * height()) / width();
-    m_lay.m_max_y = coord_height / 2;
-    m_lay.m_min_y = -m_lay.m_max_y;
+  m_lay.m_min = INIT_MIN;
+  m_lay.m_max = INIT_MAX;
+  m_lay.m_img_size = size();
+  if (width() < m_lay.len_x() * height() / m_lay.len_y()) {
+    double coord_height = (m_lay.len_x() * height()) / width();
+    m_lay.m_max.setY(coord_height / 2);
+    m_lay.m_min.setY(-m_lay.m_max.y());
   } else {
-    double coord_width = ((m_lay.m_max_y - m_lay.m_min_y) * width()) / height();
-    m_lay.m_max_x = coord_width / 3;
-    m_lay.m_min_x = -m_lay.m_max_x * 2;
+    double coord_width = (m_lay.len_y() * width()) / height();
+    m_lay.m_max.setX(coord_width / 3);
+    m_lay.m_min.setX(-m_lay.m_max.x() * 2);
   }
+  emit window_changed(m_lay);
 }
 
 void picture::paintEvent(QPaintEvent* event) {
@@ -133,9 +131,20 @@ void picture::update_mouse(QSinglePointEvent const* event) {
   emit mouse_pos_changed(pixel_to_pos(m_mouse_press_ppos, m_lay));
 }
 
+render_layout shift_layout(QPoint const& shift, render_layout lay) {
+  QPointF p = shift.toPointF();
+  p.setX(p.x() / lay.m_img_size.width());
+  p.setY(p.y() / lay.m_img_size.height());
+  QPointF delta = {p.x() * lay.len_x(), p.y() * lay.len_y()};
+  lay.m_min -= delta;
+  lay.m_max -= delta;
+  return lay;
+}
+
 void picture::mouseMoveEvent(QMouseEvent* event) {
   if (event->buttons() & Qt::LeftButton) {
     m_image_delta = (event->position() - m_mouse_press_ppos).toPoint();
+    emit window_changed(shift_layout(m_image_delta, m_lay));
     std::cout << "picture::mouseMoveEvent. updating\n";
     update();
   }
@@ -147,15 +156,8 @@ void picture::mouseReleaseEvent(QMouseEvent* event) {
     std::cout << "picture::mouseReleaseEvent. do nothing\n";
     return;
   }
-  double px = static_cast<double>(m_image_delta.x()) / m_lay.m_img_width;
-  double py = static_cast<double>(m_image_delta.y()) / m_lay.m_img_height;
-  double lenx = m_lay.m_max_x - m_lay.m_min_x;
-  double leny = m_lay.m_max_y - m_lay.m_min_y;
-  m_lay.m_min_x -= lenx * px;
-  m_lay.m_max_x -= lenx * px;
-  m_lay.m_min_y -= leny * py;
-  m_lay.m_max_y -= leny * py;
-
+  m_lay = shift_layout(m_image_delta, m_lay);
+  emit window_changed(m_lay);
   m_image.setOffset(m_image.offset() + m_image_delta);
   m_image_delta = {0, 0};
   std::cout << "picture::mouseReleaseEvent. updating\n";
@@ -184,22 +186,18 @@ void picture::zoom_picture(double power) {
   // shift = (1 - z) * pixel_to_pos(mx)
   // the same with y coordinate
 
-
   QPointF old_mouse_pos = pixel_to_pos(m_mouse_press_ppos, m_lay);
 
   constexpr static double zoom_coef = 0.85;
   double zoom_val = pow(zoom_coef, power);
   double scale_val = 1 / zoom_val;
 
-  m_lay.m_min_x *= zoom_val;
-  m_lay.m_max_x *= zoom_val;
-  m_lay.m_min_y *= zoom_val;
-  m_lay.m_max_y *= zoom_val;
+  m_lay.m_min *= zoom_val;
+  m_lay.m_max *= zoom_val;
   QPointF shift = (1 - zoom_val) * old_mouse_pos;
-  m_lay.m_min_x += shift.x();
-  m_lay.m_max_x += shift.x();
-  m_lay.m_min_y += shift.y();
-  m_lay.m_max_y += shift.y();
+  m_lay.m_min += shift;
+  m_lay.m_max += shift;
+  emit window_changed(m_lay);
 
   m_image_scale *= scale_val;
   m_image.setOffset((m_image.offset().toPointF() * scale_val + (1 - scale_val) * m_mouse_press_ppos).toPoint());

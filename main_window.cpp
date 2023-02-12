@@ -36,7 +36,7 @@ window::window(QWidget* parent) : QMainWindow(parent) {
   m_img_info_label->setAlignment(Qt::AlignRight);
   m_img_info_label->setStyleSheet(tr(qlabel_style_sheet.c_str()));
   statusBar()->addPermanentWidget(m_img_info_label);
-  connect(m_picture, &picture::render_image, this, &window::window_changed);
+  connect(m_picture, &picture::window_changed, this, &window::window_changed);
 
   setWindowTitle(tr("Mandelbrot Set"));
 }
@@ -54,7 +54,7 @@ void window::mouse_changed(QPointF const& mouse_pos) {
 
 void window::window_changed(render_layout const& lay) {
   std::stringstream ss;
-  ss << "Image size: minX=" << lay.m_min_x << ", maxX=" << lay.m_max_x << ", minY=" << lay.m_min_y
-     << ", maxY=" << lay.m_max_y;
+  ss << "Image size: minX=" << lay.m_min.x() << ", maxX=" << lay.m_max.x() << ", minY=" << lay.m_min.y()
+     << ", maxY=" << lay.m_max.y();
   m_img_info_label->setText(tr(ss.str().c_str()));
 }

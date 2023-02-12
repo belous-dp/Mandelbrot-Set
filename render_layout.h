@@ -5,15 +5,15 @@
 #pragma once
 
 #include <QPoint>
+#include <QSize>
 
 struct render_layout {
-  double m_min_x;
-  double m_max_x;
-  double m_min_y;
-  double m_max_y;
-  int m_img_width;
-  int m_img_height;
+  QPointF m_min;
+  QPointF m_max;
+  QSize m_img_size;
   bool is_null() const;
+  double len_x() const;
+  double len_y() const;
 };
 
 QPointF pixel_to_pos(QPointF const& pixel, render_layout const& lay);

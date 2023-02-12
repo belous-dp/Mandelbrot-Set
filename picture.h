@@ -35,6 +35,7 @@ private slots:
 signals:
   void render_image(render_layout const& lay);
   void mouse_pos_changed(QPointF const& mouse_pos);
+  void window_changed(render_layout const& lay);
 
 private:
   QThread m_workers_thread;
@@ -43,10 +44,8 @@ private:
   render_layout m_lay;
 
 private:
-  constexpr static double INIT_MIN_X = -2;
-  constexpr static double INIT_MAX_X = 1;
-  constexpr static double INIT_MIN_Y = -1.5;
-  constexpr static double INIT_MAX_Y = 1.5;
+  constexpr static QPointF INIT_MIN = {-2, -1.5};
+  constexpr static QPointF INIT_MAX = {1, 1.5};
 
   void emit_render_signal(std::string from);
   void emit_render_signal();
