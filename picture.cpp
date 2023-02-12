@@ -130,13 +130,12 @@ void picture::mousePressEvent(QMouseEvent* event) {
 void picture::update_mouse(QSinglePointEvent const* event) {
   emit_stop_signal();
   m_mouse_press_ppos = event->position();
-  //emit mouse_pos_changed(pixel_to_pos(m_mouse_press_ppos, m_lay));
+  emit mouse_pos_changed(pixel_to_pos(m_mouse_press_ppos, m_lay));
 }
 
 void picture::mouseMoveEvent(QMouseEvent* event) {
   if (event->buttons() & Qt::LeftButton) {
     m_image_delta = (event->position() - m_mouse_press_ppos).toPoint();
-    //emit mouse_pos_changed(pixel_to_pos(m_mouse_press_ppos + delta, m_lay));
     std::cout << "picture::mouseMoveEvent. updating\n";
     update();
   }
@@ -148,7 +147,6 @@ void picture::mouseReleaseEvent(QMouseEvent* event) {
     std::cout << "picture::mouseReleaseEvent. do nothing\n";
     return;
   }
-  //emit mouse_pos_changed(pixel_to_pos(m_mouse_press_ppos + delta, m_lay));
   double px = static_cast<double>(m_image_delta.x()) / m_lay.m_img_width;
   double py = static_cast<double>(m_image_delta.y()) / m_lay.m_img_height;
   double lenx = m_lay.m_max_x - m_lay.m_min_x;
