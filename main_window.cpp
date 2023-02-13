@@ -19,12 +19,7 @@ window::window(QWidget* parent) : QMainWindow(parent) {
 
   // === configuring menus ===
 
-  // menuBar()->setStyleSheet(tr("background-color: #505050; color: white;"));
-
-  // style
   m_style_menu = new QMenu(tr("&Coloring"), this);
-  // m_style_menu->setStyleSheet(tr("QMenu { background-color: #505050; color: white; }"));
-
   struct qact {
     std::string m_name;
     std::string m_tip;
@@ -50,15 +45,10 @@ window::window(QWidget* parent) : QMainWindow(parent) {
 
   // === configuring status bar ===
 
-  // statusBar()->setStyleSheet(tr("background-color: black;"));
-  // std::string qlabel_style_sheet = "QLabel { background-color: black; color: white; font-size:
-  // 13pt; }";
-
   // mouse position
   m_position_label = new QLabel(this);
   m_position_label->setText(tr("Position: X=0.0, Y=0.0"));
   m_position_label->setAlignment(Qt::AlignLeft);
-  // m_position_label->setStyleSheet(tr(qlabel_style_sheet.c_str()));
   statusBar()->addPermanentWidget(m_position_label);
   connect(m_picture, &picture::mouse_pos_changed, this, &window::mouse_changed);
 
@@ -69,7 +59,6 @@ window::window(QWidget* parent) : QMainWindow(parent) {
   m_img_info_label = new QLabel(this);
   m_img_info_label->setText(tr("Image size: minX=0.0, maxX=0.0, minY=0.0, maxY=0.0"));
   m_img_info_label->setAlignment(Qt::AlignRight);
-  // m_img_info_label->setStyleSheet(tr(qlabel_style_sheet.c_str()));
   statusBar()->addPermanentWidget(m_img_info_label);
   connect(m_picture, &picture::window_changed, this, &window::window_changed);
 

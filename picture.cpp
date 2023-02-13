@@ -7,8 +7,6 @@
 #include <QResizeEvent>
 #include <QSinglePointEvent>
 #include <QWheelEvent>
-#include <cassert>
-#include <iostream>
 
 picture::picture(QWidget* parent) : QWidget(parent) {
 
@@ -26,48 +24,28 @@ picture::~picture() {
   m_workers_thread.wait();
 }
 
-render_layout picture::get_layout() const {
-  return m_lay;
-}
-
 void picture::image_ready(QImage const& image) {
   m_image = image;
   m_image_scale = 1.;
-  std::cout << "picture::image_ready. updating (scheduling repaint)\n";
   update();
 }
 
-void picture::emit_render_signal(std::string from) {
-  std::cout << "picture::emit_render_signal from function " + from + '\n';
-  emit render_image(m_lay, m_image_scale);
-  m_workers.m_max_version++;
-}
 void picture::emit_render_signal() {
   emit render_image(m_lay, m_image_scale);
   m_workers.m_max_version++;
 }
 
-void picture::emit_stop_signal(std::string from) {
-  std::cout << "picture::emit_stop_signal from function " + from + '\n';
-  emit render_image({}, m_image_scale);
-  m_workers.m_max_version++;
-}
 void picture::emit_stop_signal() {
-  std::cout << "picture::emit_stop_signal\n";
   emit render_image({}, m_image_scale);
   m_workers.m_max_version++;
 }
 
 void picture::resizeEvent(QResizeEvent* event) {
-  std::cout << "picture::resizeEvent: ";
   if (event->oldSize().width() != width() || event->oldSize().height() != height()) {
-    std::cout << "new size\n";
+    m_image_scale = 0;  // reset scaling
+    emit_stop_signal(); // reset scaling
     reset_layout();
-    emit render_image({}, 0); // reset scaling
-    m_workers.m_max_version++;
-    emit_render_signal("resizeEvent");
-  } else {
-    std::cout << "same size\n";
+    emit_render_signal();
   }
 }
 
@@ -91,12 +69,10 @@ void picture::reset_layout() {
 void picture::paintEvent(QPaintEvent* event) {
   QPainter p(this);
   p.fillRect(rect(), Qt::black);
-  std::cout << "picture::paintEvent: ";
   if (m_image.isNull()) {
     p.setPen(Qt::white);
     p.drawText(rect(), Qt::AlignCenter, tr("Initial rendering..."));
   } else if (!qFuzzyCompare(m_image_scale, 1.)) {
-    std::cout << "scaling, scale=" << m_image_scale << '\n';
     // the image itself can be scaled using `QImage.scaled()`,
     // but that method returns a copy of the image.
     // so it'd be better to scale the coordinate system without copying the image
@@ -105,17 +81,13 @@ void picture::paintEvent(QPaintEvent* event) {
     p.scale(m_image_scale, m_image_scale);
     p.drawImage(0, 0, m_image);
   } else if (!m_image_delta.isNull() || !m_image.offset().isNull()) {
-    std::cout << "shifting, x=" << m_image.offset().x() + m_image_delta.x()
-              << ", y=" << m_image.offset().y() + m_image_delta.y() << '\n';
     p.drawImage(m_image.offset().x() + m_image_delta.x(), m_image.offset().y() + m_image_delta.y(), m_image);
   } else {
-    std::cout << "\n";
     p.drawImage(0, 0, m_image);
   }
 }
 
 void picture::wheelEvent(QWheelEvent* event) {
-  std::cout << "picture::wheelEvent\n";
   update_mouse(event);
   int degrees = event->angleDelta().y() / 8;
   double steps = degrees / 15.;
@@ -124,7 +96,6 @@ void picture::wheelEvent(QWheelEvent* event) {
 
 void picture::mousePressEvent(QMouseEvent* event) {
   if (event->button() == Qt::LeftButton) {
-    std::cout << "picture::mousePressEvent\n";
     update_mouse(event);
   }
 }
@@ -149,7 +120,6 @@ void picture::mouseMoveEvent(QMouseEvent* event) {
   if (event->buttons() & Qt::LeftButton) {
     m_image_delta = (event->position() - m_mouse_press_ppos).toPoint();
     emit window_changed(shift_layout(m_image_delta, m_lay));
-    std::cout << "picture::mouseMoveEvent. updating\n";
     update();
   }
 }
@@ -157,20 +127,18 @@ void picture::mouseMoveEvent(QMouseEvent* event) {
 void picture::mouseReleaseEvent(QMouseEvent* event) {
   m_image_delta = (event->position() - m_mouse_press_ppos).toPoint();
   if (m_image_delta == QPoint(0, 0)) {
-    std::cout << "picture::mouseReleaseEvent. do nothing\n";
     return;
   }
   m_lay = shift_layout(m_image_delta, m_lay);
   emit window_changed(m_lay);
   m_image.setOffset(m_image.offset() + m_image_delta);
   m_image_delta = {0, 0};
-  std::cout << "picture::mouseReleaseEvent. updating\n";
   update();
-  emit_render_signal("mouseReleaseEvent");
+  emit_render_signal();
 }
 
 void picture::closeEvent(QCloseEvent* event) {
-  emit_stop_signal("closeEvent");
+  emit_stop_signal();
   event->accept();
 }
 
@@ -205,12 +173,11 @@ void picture::zoom_picture(double power) {
 
   m_image_scale *= scale_val;
   m_image.setOffset((m_image.offset().toPointF() * scale_val + (1 - scale_val) * m_mouse_press_ppos).toPoint());
-  std::cout << "picture::zoom_picture. updating\n";
   update(); // here 'repaint()' can be called,
   // thus line "m_lay.m_scale = 1.;" in 'emit_render_signal()' can be removed.
   // but i think 'update()' is sligthly better than 'repaint()'
   // in terms of performance
-  emit_render_signal("zoom_picture");
+  emit_render_signal();
 }
 
 void picture::style_blueprint(coloring style) {

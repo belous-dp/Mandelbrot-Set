@@ -3,12 +3,12 @@
 //
 
 #pragma once
-#include "perf_helper.h"
+// #include "perf_helper.h"
+#include "coloring.h"
 #include "render_layout.h"
 #include <QImage>
 #include <QObject>
 #include <atomic>
-#include "coloring.h"
 
 class workers : public QObject {
   Q_OBJECT
@@ -30,9 +30,9 @@ public:
 
 private:
   constexpr static ushort NSTEPS = 8;
-  constexpr static ushort STOP = 6000;
+  constexpr static ushort STOP = 5000;
   constexpr static ushort MIN_ITER_INIT = 100;
-  constexpr static ushort MAX_ITER_INIT = 6000;
+  constexpr static ushort MAX_ITER_INIT = 5000;
   ushort iter_start = 100;
   ushort iter_step = 100;
 
@@ -42,7 +42,7 @@ private:
   constexpr static ushort NCOLORS = 16;
   uint m_mapping[NCOLORS];
 
-  //perf_helper m_perf_helper;
+  // perf_helper m_perf_helper;
   std::atomic<uint32_t> m_cur_version{0};
   std::atomic<uint8_t> m_failed{false};
 

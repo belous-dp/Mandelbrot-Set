@@ -18,8 +18,6 @@ public:
   explicit picture(QWidget* parent = nullptr);
   ~picture();
 
-  render_layout get_layout() const;
-
 protected:
   void paintEvent(QPaintEvent* event) override;
   void resizeEvent(QResizeEvent* event) override;
@@ -54,9 +52,7 @@ private:
   constexpr static QPointF INIT_MIN = {-2, -1.5};
   constexpr static QPointF INIT_MAX = {1, 1.5};
 
-  void emit_render_signal(std::string from);
   void emit_render_signal();
-  void emit_stop_signal(std::string from);
   void emit_stop_signal();
   void reset_layout();
   void update_mouse(QSinglePointEvent const* event);
