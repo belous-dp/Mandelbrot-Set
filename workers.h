@@ -30,8 +30,9 @@ public:
 
 private:
   constexpr static ushort NSTEPS = 8;
-
   constexpr static ushort STOP = 6000;
+  constexpr static ushort MIN_ITER_INIT = 100;
+  constexpr static ushort MAX_ITER_INIT = 6000;
   ushort iter_start = 100;
   ushort iter_step = 100;
 

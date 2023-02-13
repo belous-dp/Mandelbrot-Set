@@ -63,6 +63,8 @@ void picture::resizeEvent(QResizeEvent* event) {
   if (event->oldSize().width() != width() || event->oldSize().height() != height()) {
     std::cout << "new size\n";
     reset_layout();
+    emit render_image({}, 0); // reset scaling
+    m_workers.m_max_version++;
     emit_render_signal("resizeEvent");
   } else {
     std::cout << "same size\n";

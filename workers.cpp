@@ -220,7 +220,9 @@ void workers::render_image(render_layout const& lay, // maybe it'd be better to 
                            double scale_factor) {
   if (lay.is_null()) {
     // stop signal
-    // do nothing
+    if (scale_factor == 0) {
+      iter_start = iter_step = MIN_ITER_INIT;
+    }
     m_cur_version++;
     return;
   }
@@ -236,19 +238,24 @@ void workers::render_image(render_layout const& lay, // maybe it'd be better to 
     //if (iter_start < 2000) {
       //scale_factor = log(scale_factor) / (1 + log(scale_factor)) / 5;
     //} else {
-      scale_factor = (atan(scale_factor) - atan(1)) / 15;
+      scale_factor = (atan(scale_factor) - atan(1)) / 13;
     //}
     iter_start *= (1 + scale_factor);
     iter_step *= (1 + scale_factor / 2.2);
+    iter_start = std::min(iter_start, MAX_ITER_INIT);
+    iter_step = std::min(iter_step, MAX_ITER_INIT);
   } else {
     assert(scale_factor >= 0);
     //if (iter_start < 2000) {
       //scale_factor = -log(scale_factor) / (1 - log(scale_factor)) / 5;
     //} else {
-      scale_factor = (atan(1 / scale_factor) - atan(1)) / 15;
+      scale_factor = (atan(1 / scale_factor) - atan(1)) / 13;
     //}
     iter_start /= (1 + scale_factor);
     iter_step /= (1 + scale_factor / 2.2);
+    iter_start = std::max(iter_start, MIN_ITER_INIT);
+    iter_step = std::max(iter_step, MIN_ITER_INIT);
+    // todo fix iter start zero
   }
   std::cout << iter_start << ' ' << iter_step << std::endl;
   m_cur_version++;

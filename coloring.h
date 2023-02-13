@@ -5,3 +5,7 @@
 #pragma once
 
 enum class coloring { binary, fiery, blue, wavy, another_blue };
+
+// todo add hue coloring
+// todo add hue histogram coloring
+// todo add hue histogram coloring with smoothing
