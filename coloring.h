@@ -4,4 +4,4 @@
 
 #pragma once
 
-enum class coloring { binary, fiery, blue, wavy };
+enum class coloring { binary, fiery, blue, wavy, another_blue };

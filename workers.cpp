@@ -34,6 +34,8 @@ workers::workers() : m_nthreads(std::thread::hardware_concurrency()) {
   m_mapping[13] = qRgb(204, 128, 0);
   m_mapping[14] = qRgb(153, 87, 0);
   m_mapping[15] = qRgb(106, 52, 3);
+
+  m_nthreads = 1;
 }
 
 void workers::set_nthreads(unsigned int nthreads) {
@@ -66,7 +68,7 @@ int get_escape_rate(QPointF const& pixel, unsigned cur_img_version, ushort num_i
 }
 
 void init_pixel_color(uchar*& p, coloring style, ushort const NCOLORS, uint const mapping[],
-                      ushort iter, ushort max, std::size_t& total,
+                      ushort iter, ushort max,
                       std::vector<std::size_t>& iter_count) {
   switch (style) {
   case coloring::binary: {
@@ -99,17 +101,59 @@ void init_pixel_color(uchar*& p, coloring style, ushort const NCOLORS, uint cons
     *p++ = static_cast<uchar>(color.red());
     *p++ = static_cast<uchar>(color.green());
     *p++ = static_cast<uchar>(color.blue());
+    break;
   }
-  /*case coloring::histogram: {
-    total += iter;
+  case coloring::another_blue: {
     iter_count[iter]++;
     ushort* piter = reinterpret_cast<ushort*>(p);
     *piter = iter;
     p += 3;
     break;
-  }*/
+  }
   default:
     unreachable();
+  }
+}
+
+void process_pixels(coloring style, std::vector<std::size_t>& iter_count_hist, uchar* data,
+                    int const start_line, int const stop_line, qsizetype bytes_per_line, render_layout lay) {
+  if (style == coloring::another_blue) {
+    std::size_t total = 0;
+    assert(iter_count_hist[0] == 0);
+    for (std::size_t i = 1; i < iter_count_hist.size(); ++i) {
+      //std::cout << iter_count_hist[i] << ' ';
+      total += iter_count_hist[i];
+      iter_count_hist[i] += iter_count_hist[i - 1];
+    }
+    //std::cout << std::endl << total << std::endl;
+    std::vector<double> density(iter_count_hist.begin(), iter_count_hist.end()); 
+    for (std::size_t i = 1; i < iter_count_hist.size(); ++i) {
+      density[i] /= total;
+      //std::cout << density[i] << ' ';
+    }
+    //std::cout << std::endl;
+    QRgb start = Qt::white;
+    QRgb end = qRgb(15, 0, 168);
+    auto interpolate = [](uchar start, uchar end, double val) {
+      assert(0. <= val && val <= 1.);
+      return static_cast<uchar>(start + (end - start) * val);
+    };
+    for (int y = start_line; y < stop_line; ++y) {
+      uchar* p = data + y * bytes_per_line;
+      for (int x = 0; x < lay.m_img_size.width(); ++x) {
+        ushort iter = *reinterpret_cast<ushort*>(p);
+        if (iter + 1 == iter_count_hist.size()) {
+          *p++ = 0;
+          *p++ = 0;
+          *p++ = 0;
+        } else {
+          double transition = density[iter];
+          *p++ = interpolate(qRed(start), qRed(end), transition);
+          *p++ = interpolate(qGreen(start), qGreen(end), transition);
+          *p++ = interpolate(qBlue(start), qBlue(end), transition);
+        }
+      }
+    }
   }
 }
 
@@ -118,11 +162,10 @@ void fill_image_chunk(uchar* data, qsizetype bytes_per_line, int const start_lin
                       uint const mapping[], render_layout lay, ushort max_iter,
                       std::atomic<unsigned>& m_cur_version, std::atomic<unsigned>& m_max_version,
                       std::atomic<uint8_t>& m_failed) {
-  std::size_t total_iters = 0;
   std::vector<std::size_t> iter_count_hist;
-  // if (style == coloring::histogram) {
-  // iter_count_hist.resize(max_iter + 1);
-  //}
+   if (style == coloring::another_blue) {
+   iter_count_hist.resize(max_iter + 1);
+  }
   for (int y = start_line; y < stop_line; ++y) {
     // std::cout << "tid" << std::this_thread::get_id() << ": " << y << std::endl;
     uchar* p = data + y * bytes_per_line;
@@ -134,10 +177,10 @@ void fill_image_chunk(uchar* data, qsizetype bytes_per_line, int const start_lin
         return;
       }
       init_pixel_color(p, style, NCOLORS, mapping, static_cast<ushort>(iterations), max_iter,
-                       total_iters, iter_count_hist);
+                       iter_count_hist);
     }
   }
-  // process_pixels(style, data, )
+  process_pixels(style, iter_count_hist, data, start_line, stop_line, bytes_per_line, lay);
 }
 
 void workers::fill_image(QImage& image, render_layout const& lay) {
@@ -190,20 +233,20 @@ void workers::render_image(render_layout const& lay, // maybe it'd be better to 
   //   fill_image(img, m_lay);
   // });
   if (scale_factor >= 1) {
-    if (iter_start < 2000) {
-      scale_factor = log(scale_factor) / (1 + log(scale_factor)) / 2.5;
-    } else {
-      scale_factor = (atan(scale_factor) - atan(1)) / 10;
-    }
+    //if (iter_start < 2000) {
+      //scale_factor = log(scale_factor) / (1 + log(scale_factor)) / 5;
+    //} else {
+      scale_factor = (atan(scale_factor) - atan(1)) / 15;
+    //}
     iter_start *= (1 + scale_factor);
     iter_step *= (1 + scale_factor / 2.2);
   } else {
     assert(scale_factor >= 0);
-    if (iter_start < 2000) {
-      scale_factor = -log(scale_factor) / (1 - log(scale_factor)) / 2.5;
-    } else {
-      scale_factor = (atan(1 / scale_factor) - atan(1)) / 10;
-    }
+    //if (iter_start < 2000) {
+      //scale_factor = -log(scale_factor) / (1 - log(scale_factor)) / 5;
+    //} else {
+      scale_factor = (atan(1 / scale_factor) - atan(1)) / 15;
+    //}
     iter_start /= (1 + scale_factor);
     iter_step /= (1 + scale_factor / 2.2);
   }

@@ -220,15 +220,15 @@ void picture::style_blueprint(coloring style) {
 void picture::style1() {
   style_blueprint(coloring::binary);
 }
-
 void picture::style2() {
   style_blueprint(coloring::fiery);
 }
-
 void picture::style3() {
   style_blueprint(coloring::blue);
 }
-
 void picture::style4() {
   style_blueprint(coloring::wavy);
+}
+void picture::style5() {
+  style_blueprint(coloring::another_blue);
 }

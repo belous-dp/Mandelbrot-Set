@@ -34,6 +34,7 @@ public slots:
   void style2();
   void style3();
   void style4();
+  void style5();
 
 private slots:
   void image_ready(QImage const& image);

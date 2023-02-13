@@ -31,10 +31,12 @@ window::window(QWidget* parent) : QMainWindow(parent) {
     coloring m_style;
     void (picture::*slot)();
   };
-  std::vector<qact> qacts = {{"&Binary", "Binary coloring",     coloring::binary, &picture::style1},
-                             {"&Fiery",  "Simple red coloring", coloring::fiery,  &picture::style2},
-                             {"&Blue",   "Kinda blue coloring", coloring::blue,   &picture::style3},
-                             {"&Wavy",   "16-colors palette",   coloring::wavy,   &picture::style4}};
+  std::vector<qact> qacts = {
+      {"&Binary",    "Binary coloring",     coloring::binary,    &picture::style1},
+      {"&Fiery",     "Simple red coloring", coloring::fiery,     &picture::style2},
+      {"&Blue",      "Kinda blue coloring", coloring::blue,      &picture::style3},
+      {"&Wavy",      "16-colors palette",   coloring::wavy,      &picture::style4},
+      {"&Histogram", "Histogram coloring",  coloring::another_blue, &picture::style5}};
   for (std::size_t i = 0; i < qacts.size(); ++i) {
     qact const& act = qacts[i];
     QAction* style_act = new QAction(tr(act.m_name.c_str()), this);
