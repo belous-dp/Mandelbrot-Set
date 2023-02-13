@@ -1,13 +1,23 @@
 # Mandelbrot
 
+A multi-threaded C++ application for drawing and exploring [Mandelbrot set](https://en.m.wikipedia.org/wiki/Mandelbrot_set). Offers multiple color palettes and responsive UI with real-time rendering. Uses Qt for developing GUI.
 
-В этом задании нужно написать простейшую визуализацию множества мандельброта по аналогии с тем, что обсуждали на лекции.
+Short demo:
 
-Форма реализации свободная. Однако во время проверки будут учитываться:  
-* Использование многопоточного программирования (обязательно)
-* Скорость отрисовки, возможность отмены и UX в целом: перетаскивания, зум в точку курсора
-* Хорошее владение бибилиотекой Qt, предоставляемыми функциями и классами
-* Чем приятнее GUI, тем лучше (пойдет в карму)
+https://user-images.githubusercontent.com/46475907/218579722-5c3443ac-3657-4ca4-80b7-eab5c96a72b1.mp4
 
-P.S. Просьба убедиться, что вы используете разного рода санитайзеры у себя в проекте (thread в том числе)
+## Installation
 
+### Prerequisites
+* Qt 6
+* CMake
+
+// todo
+
+## Project structure
+
+// todo
+
+### Computation
+### Moving, shifting
+### Coloring
