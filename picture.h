@@ -32,7 +32,8 @@ protected:
 public slots:
   void style1();
   void style2();
-  //void style3();
+  void style3();
+  void style4();
 
 private slots:
   void image_ready(QImage const& image);

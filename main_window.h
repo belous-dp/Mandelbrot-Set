@@ -31,6 +31,7 @@ private:
   QAction* m_style1_act;
   QAction* m_style2_act;
   QAction* m_style3_act;
+  QAction* m_style4_act;
   QLabel* m_position_label;
   QLabel* m_img_info_label;
 };

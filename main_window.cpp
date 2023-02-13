@@ -25,7 +25,7 @@ window::window(QWidget* parent) : QMainWindow(parent) {
   m_style_menu = new QMenu(tr("&Coloring"), this);
   //m_style_menu->setStyleSheet(tr("QMenu { background-color: #505050; color: white; }"));
 
-  m_style1_act = new QAction(tr("&Pure"), this);
+  m_style1_act = new QAction(tr("&Binary"), this);
   m_style1_act->setShortcut(QKeySequence(Qt::Key_1));
   m_style1_act->setStatusTip(tr("Binary coloring"));
   connect(m_style1_act, &QAction::triggered, m_picture, &picture::style1);
@@ -36,6 +36,18 @@ window::window(QWidget* parent) : QMainWindow(parent) {
   m_style2_act->setStatusTip(tr("Simple red coloring"));
   connect(m_style2_act, &QAction::triggered, m_picture, &picture::style2);
   m_style_menu->addAction(m_style2_act);
+
+  m_style3_act = new QAction(tr("&Blue"), this);
+  m_style3_act->setShortcut(QKeySequence(Qt::Key_3));
+  m_style3_act->setStatusTip(tr("Kinda blue coloring"));
+  connect(m_style3_act, &QAction::triggered, m_picture, &picture::style3);
+  m_style_menu->addAction(m_style3_act);
+
+  m_style4_act = new QAction(tr("&Wavy"), this);
+  m_style4_act->setShortcut(QKeySequence(Qt::Key_4));
+  m_style4_act->setStatusTip(tr("16-colors palette"));
+  connect(m_style4_act, &QAction::triggered, m_picture, &picture::style4);
+  m_style_menu->addAction(m_style4_act);
 
   menuBar()->addMenu(m_style_menu);
 
