@@ -211,26 +211,24 @@ void picture::zoom_picture(double power) {
   emit_render_signal("zoom_picture");
 }
 
-void picture::style1() {
+void picture::style_blueprint(coloring style) {
   emit_stop_signal();
-  emit change_style(coloring::binary);
+  emit change_style(style);
   emit_render_signal();
+}
+
+void picture::style1() {
+  style_blueprint(coloring::binary);
 }
 
 void picture::style2() {
-  emit_stop_signal();
-  emit change_style(coloring::fiery);
-  emit_render_signal();
+  style_blueprint(coloring::fiery);
 }
 
 void picture::style3() {
-  emit_stop_signal();
-  emit change_style(coloring::blue);
-  emit_render_signal();
+  style_blueprint(coloring::blue);
 }
 
 void picture::style4() {
-  emit_stop_signal();
-  emit change_style(coloring::wavy);
-  emit_render_signal();
+  style_blueprint(coloring::wavy);
 }

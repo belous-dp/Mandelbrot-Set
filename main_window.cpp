@@ -19,59 +19,55 @@ window::window(QWidget* parent) : QMainWindow(parent) {
 
   // === configuring menus ===
 
-  //menuBar()->setStyleSheet(tr("background-color: #505050; color: white;"));
+  // menuBar()->setStyleSheet(tr("background-color: #505050; color: white;"));
 
   // style
   m_style_menu = new QMenu(tr("&Coloring"), this);
-  //m_style_menu->setStyleSheet(tr("QMenu { background-color: #505050; color: white; }"));
+  // m_style_menu->setStyleSheet(tr("QMenu { background-color: #505050; color: white; }"));
 
-  m_style1_act = new QAction(tr("&Binary"), this);
-  m_style1_act->setShortcut(QKeySequence(Qt::Key_1));
-  m_style1_act->setStatusTip(tr("Binary coloring"));
-  connect(m_style1_act, &QAction::triggered, m_picture, &picture::style1);
-  m_style_menu->addAction(m_style1_act);
-
-  m_style2_act = new QAction(tr("&Fiery"), this);
-  m_style2_act->setShortcut(QKeySequence(Qt::Key_2));
-  m_style2_act->setStatusTip(tr("Simple red coloring"));
-  connect(m_style2_act, &QAction::triggered, m_picture, &picture::style2);
-  m_style_menu->addAction(m_style2_act);
-
-  m_style3_act = new QAction(tr("&Blue"), this);
-  m_style3_act->setShortcut(QKeySequence(Qt::Key_3));
-  m_style3_act->setStatusTip(tr("Kinda blue coloring"));
-  connect(m_style3_act, &QAction::triggered, m_picture, &picture::style3);
-  m_style_menu->addAction(m_style3_act);
-
-  m_style4_act = new QAction(tr("&Wavy"), this);
-  m_style4_act->setShortcut(QKeySequence(Qt::Key_4));
-  m_style4_act->setStatusTip(tr("16-colors palette"));
-  connect(m_style4_act, &QAction::triggered, m_picture, &picture::style4);
-  m_style_menu->addAction(m_style4_act);
+  struct qact {
+    std::string m_name;
+    std::string m_tip;
+    coloring m_style;
+    void (picture::*slot)();
+  };
+  std::vector<qact> qacts = {{"&Binary", "Binary coloring",     coloring::binary, &picture::style1},
+                             {"&Fiery",  "Simple red coloring", coloring::fiery,  &picture::style2},
+                             {"&Blue",   "Kinda blue coloring", coloring::blue,   &picture::style3},
+                             {"&Wavy",   "16-colors palette",   coloring::wavy,   &picture::style4}};
+  for (std::size_t i = 0; i < qacts.size(); ++i) {
+    qact const& act = qacts[i];
+    QAction* style_act = new QAction(tr(act.m_name.c_str()), this);
+    style_act->setShortcut(QKeySequence(Qt::Key_1 + i));
+    style_act->setStatusTip(tr(act.m_tip.c_str()));
+    connect(style_act, &QAction::triggered, m_picture, act.slot);
+    m_style_menu->addAction(style_act);
+  }
 
   menuBar()->addMenu(m_style_menu);
 
   // === configuring status bar ===
 
-  //statusBar()->setStyleSheet(tr("background-color: black;"));
-  //std::string qlabel_style_sheet = "QLabel { background-color: black; color: white; font-size: 13pt; }";
+  // statusBar()->setStyleSheet(tr("background-color: black;"));
+  // std::string qlabel_style_sheet = "QLabel { background-color: black; color: white; font-size:
+  // 13pt; }";
 
   // mouse position
   m_position_label = new QLabel(this);
   m_position_label->setText(tr("Position: X=0.0, Y=0.0"));
   m_position_label->setAlignment(Qt::AlignLeft);
-  //m_position_label->setStyleSheet(tr(qlabel_style_sheet.c_str()));
+  // m_position_label->setStyleSheet(tr(qlabel_style_sheet.c_str()));
   statusBar()->addPermanentWidget(m_position_label);
   connect(m_picture, &picture::mouse_pos_changed, this, &window::mouse_changed);
 
   QLabel* spacer = new QLabel(this);
   statusBar()->addPermanentWidget(spacer, 1);
-  
+
   // information about image
   m_img_info_label = new QLabel(this);
   m_img_info_label->setText(tr("Image size: minX=0.0, maxX=0.0, minY=0.0, maxY=0.0"));
   m_img_info_label->setAlignment(Qt::AlignRight);
-  //m_img_info_label->setStyleSheet(tr(qlabel_style_sheet.c_str()));
+  // m_img_info_label->setStyleSheet(tr(qlabel_style_sheet.c_str()));
   statusBar()->addPermanentWidget(m_img_info_label);
   connect(m_picture, &picture::window_changed, this, &window::window_changed);
 
@@ -91,7 +87,7 @@ void window::mouse_changed(QPointF const& mouse_pos) {
 
 void window::window_changed(render_layout const& lay) {
   std::stringstream ss;
-  ss << "Image size: minX=" << lay.m_min.x() << ", maxX=" << lay.m_max.x() << ", minY=" << lay.m_min.y()
-     << ", maxY=" << lay.m_max.y();
+  ss << "Image size: minX=" << lay.m_min.x() << ", maxX=" << lay.m_max.x()
+     << ", minY=" << lay.m_min.y() << ", maxY=" << lay.m_max.y();
   m_img_info_label->setText(tr(ss.str().c_str()));
 }

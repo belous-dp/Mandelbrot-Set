@@ -113,26 +113,27 @@ void init_pixel_color(uchar*& p, coloring style, ushort const NCOLORS, uint cons
   }
 }
 
-void fill_image_chunk(uchar* data, qsizetype bytes_per_line, int line, int height, coloring style,
-                      ushort const NCOLORS, uint const mapping[], render_layout lay,
-                      ushort num_iter, std::atomic<unsigned>& m_cur_version,
-                      std::atomic<unsigned>& m_max_version, std::atomic<uint8_t>& m_failed) {
+void fill_image_chunk(uchar* data, qsizetype bytes_per_line, int const start_line,
+                      int const stop_line, coloring style, ushort const NCOLORS,
+                      uint const mapping[], render_layout lay, ushort max_iter,
+                      std::atomic<unsigned>& m_cur_version, std::atomic<unsigned>& m_max_version,
+                      std::atomic<uint8_t>& m_failed) {
   std::size_t total_iters = 0;
   std::vector<std::size_t> iter_count_hist;
   // if (style == coloring::histogram) {
-  // iter_count_hist.resize(num_iter + 1);
+  // iter_count_hist.resize(max_iter + 1);
   //}
-  for (int y = 0; y < height; ++y) {
+  for (int y = start_line; y < stop_line; ++y) {
+    // std::cout << "tid" << std::this_thread::get_id() << ": " << y << std::endl;
     uchar* p = data + y * bytes_per_line;
     for (int x = 0; x < lay.m_img_size.width(); ++x) {
-      int iterations =
-          get_escape_rate(QPointF(x, y + line), m_cur_version.load(std::memory_order_relaxed),
-                          num_iter, lay, m_max_version);
+      int iterations = get_escape_rate(QPointF(x, y), m_cur_version.load(std::memory_order_relaxed),
+                                       max_iter, lay, m_max_version);
       if (iterations < 0 || m_failed.load(std::memory_order_relaxed)) {
         m_failed.fetch_or(true, std::memory_order_relaxed);
         return;
       }
-      init_pixel_color(p, style, NCOLORS, mapping, static_cast<ushort>(iterations), num_iter,
+      init_pixel_color(p, style, NCOLORS, mapping, static_cast<ushort>(iterations), max_iter,
                        total_iters, iter_count_hist);
     }
   }
@@ -142,19 +143,23 @@ void fill_image_chunk(uchar* data, qsizetype bytes_per_line, int line, int heigh
 void workers::fill_image(QImage& image, render_layout const& lay) {
   std::vector<std::thread> hard_workers(m_nthreads);
   int lines_per_thread = lay.m_img_size.height() / hard_workers.size();
-  uchar* data = image.bits();
+
   qsizetype bytes_per_line = image.bytesPerLine();
-  for (ushort iter = iter_start, step = 0; step < NSTEPS && (step < 2 || iter < STOP);
-       iter += iter_step, ++step) {
-    assert(iter < 4 * STOP);
-    for (std::size_t i = 0, lc = 0; i < hard_workers.size(); ++i, lc += lines_per_thread) {
-      int height = lines_per_thread;
+  for (ushort iters = iter_start, step = 0; step < NSTEPS && (step < 2 || iters < STOP);
+       iters += iter_step, ++step) {
+    // std::cout << "step=" << step << std::endl;
+    assert(iters < 4 * STOP);
+    int start_line = 0, stop_line = lines_per_thread;
+    for (std::size_t i = 0; i < hard_workers.size();
+         ++i, start_line += lines_per_thread, stop_line += lines_per_thread) {
+      // std::cout << "i=" << i << ", start_line=" << start_line << ", stop_line=" << stop_line
+      //           << ", max_line=" << lay.m_img_size.height() << std::endl;
       if (i + 1 == hard_workers.size()) {
-        height += lay.m_img_size.height() % hard_workers.size();
+        stop_line = lay.m_img_size.height();
       }
       hard_workers[i] =
-          std::thread(&fill_image_chunk, data + lc * bytes_per_line, bytes_per_line, lc, height,
-                      m_style, NCOLORS, m_mapping, lay, iter, std::ref(m_cur_version),
+          std::thread(&fill_image_chunk, image.bits(), bytes_per_line, start_line, stop_line,
+                      m_style, NCOLORS, m_mapping, lay, iters, std::ref(m_cur_version),
                       std::ref(m_max_version), std::ref(m_failed));
     }
     for (auto& t : hard_workers) {
@@ -181,9 +186,9 @@ void workers::render_image(render_layout const& lay, // maybe it'd be better to 
   m_failed.store(false, std::memory_order_relaxed);
   fill_image(img, lay);
   // m_perf_helper.profile([&] {
-  // m_failed.store(false, std::memory_order_relaxed);
-  // fill_image(img, m_lay);
-  //});
+  //   m_failed.store(false, std::memory_order_relaxed);
+  //   fill_image(img, m_lay);
+  // });
   if (scale_factor >= 1) {
     if (iter_start < 2000) {
       scale_factor = log(scale_factor) / (1 + log(scale_factor)) / 2.5;

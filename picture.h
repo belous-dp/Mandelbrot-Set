@@ -64,4 +64,6 @@ private:
   QPointF m_mouse_press_ppos;
   QPoint m_image_delta;
   double m_image_scale;
+
+  void style_blueprint(coloring style);
 };
