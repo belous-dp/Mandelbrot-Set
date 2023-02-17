@@ -25,7 +25,7 @@ Open folder with the cloned project.
     4. New user variable
     5. Variable name: "VCPKG_DIR" (without quotes)
     5. Variable value: <path to vcpkg installation directory>
-2. Locate to $VCPKG_DIR$
+2. Locate to `$VCPKG_DIR$`
 3. `git pull`
 4. `./bootstrap-vcpkg.bat`
 5. `./vcpkg.exe install qtbase[core,gui,widgets]:x64-windows-static`
@@ -41,7 +41,7 @@ Open folder with the cloned project.
 
 ### Linux. vcpkg + CLion
 1. Add vcpkg installation directory to system environment variables as "VCPKG_DIR" (without quotes)
-2. Locate to $VCPKG_DIR$
+2. Locate to `$VCPKG_DIR$`
 3. `git pull`
 4. `./bootstrap-vcpkg.sh`
 5. `./vcpkg install qtbase[core,gui,widgets]:x64-linux`

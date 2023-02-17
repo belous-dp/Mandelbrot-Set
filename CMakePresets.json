@@ -58,6 +58,57 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "RelWithDebInfo"
             }
+        },
+        {
+            "name": "linux-base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "installDir": "${sourceDir}/out/install/${presetName}",
+            "toolchainFile": "$env{VCPKG_DIR}/scripts/buildsystems/vcpkg.cmake",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-linux"
+            }
+        },
+        {
+            "name": "linux-x64-debug",
+            "displayName": "Debug",
+            "description": "Default Debug build",
+            "inherits": "linux-base",
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "linux-x64-sanitized-debug",
+            "displayName": "Sanitized Debug",
+            "description": "Debug build with undefined, address and leak sanitizers enabled",
+            "inherits": "linux-x64-debug",
+            "cacheVariables": {
+                "USE_SANITIZERS": "ON"
+            }
+        },
+        {
+            "name": "linux-x64-release",
+            "displayName": "Release",
+            "description": "Default Release build",
+            "inherits": "linux-x64-debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "x64-rel-with-deb-info",
+            "displayName": "RelWithDebInfo",
+            "description": "Release with debug info",
+            "inherits": "linux-x64-debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+            }
         }
     ]
 }
