@@ -15,7 +15,7 @@ https://user-images.githubusercontent.com/46475907/218579722-5c3443ac-3657-4ca4-
 * Your favorite IDE
 
 ### Using QtCreator
-Open folder with the cloned project.
+Open folder with the cloned project. Compile and run the project.
 
 ### Windows. vcpkg + Visual Studio 2022
 1. Add vcpkg installation directory to system variables
@@ -37,7 +37,8 @@ Open folder with the cloned project.
 11. Choose configuration type ("Release" is the best in terms of performance)
 12. Project -> Configure mandelbrot
 13. Build -> Build all
-14. Debug -> Start without debugging
+14. Select Startup Item -> mandelbrot.exe
+15. Debug -> Start without debugging
 
 ### Linux. vcpkg + CLion
 1. Add vcpkg installation directory to system environment variables as "VCPKG_DIR" (without quotes)

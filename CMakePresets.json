@@ -68,6 +68,11 @@
             "toolchainFile": "$env{VCPKG_DIR}/scripts/buildsystems/vcpkg.cmake",
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-linux"
+            },
+            "condition": {
+                "type": "notEquals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
             }
         },
         {
@@ -102,7 +107,7 @@
             }
         },
         {
-            "name": "x64-rel-with-deb-info",
+            "name": "linux-x64-rel-with-deb-info",
             "displayName": "RelWithDebInfo",
             "description": "Release with debug info",
             "inherits": "linux-x64-debug",
