@@ -1,11 +1,14 @@
 #include "main_window.h"
 #include "picture.h"
+
 #include <QCloseEvent>
 #include <QLabel>
 #include <QMenuBar>
 #include <QStatusBar>
 #include <QWidget>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 
 window::window(QWidget* parent) : QMainWindow(parent) {
   std::cout << std::fixed << std::setprecision(3);

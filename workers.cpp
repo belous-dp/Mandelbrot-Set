@@ -4,6 +4,7 @@
 
 #include "workers.h"
 #include <cassert>
+#include <thread>
 
 [[noreturn]] inline void unreachable() { // introduced in C++23
   // Uses compiler specific extensions if possible.
@@ -11,7 +12,7 @@
   // an empty function body and the noreturn attribute.
 #ifdef __GNUC__ // GCC, Clang, ICC
   __builtin_unreachable();
-#elifdef _MSC_VER // MSVC
+#elif defined(_MSC_VER) // MSVC
   __assume(false);
 #endif
 }
@@ -125,9 +126,9 @@ void process_pixels(coloring style, std::vector<std::size_t>& iter_count_hist, u
     }
     QRgb start = Qt::white;
     QRgb end = qRgb(15, 0, 168);
-    auto interpolate = [](uchar start, uchar end, double val) {
+    auto interpolate = [](uchar a, uchar b, double x) {
       assert(0. <= val && val <= 1.);
-      return static_cast<uchar>(start + (end - start) * val);
+      return static_cast<uchar>(a + (b - a) * x);
     };
     for (int y = start_line; y < stop_line; ++y) {
       uchar* p = data + y * bytes_per_line;

@@ -1,14 +1,11 @@
-﻿cmake_minimum_required(VERSION 3.22)
+﻿cmake_minimum_required(VERSION 3.25)
 project(mandelbrot)
 
 set(CMAKE_CXX_STANDARD 20)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
 qt_standard_project_setup()
-# file(COPY "QDarkStyleSheet/qdarkstyle/dark" DESTINATION "QDarkStyleSheet/qdarkstyle")
-# qt_add_resources(RESOURCES "QDarkStyleSheet/qdarkstyle/dark/darkstyle.qrc")
 set(CMAKE_AUTORCC ON)
-# file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/logs")
 
 set(RESOURCES "QDarkStyleSheet/qdarkstyle/dark/darkstyle.qrc")
 add_executable(mandelbrot "main.cpp" "main_window.cpp" "picture.cpp" "perf_helper.cpp"
