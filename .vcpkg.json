@@ -1,0 +1,15 @@
+{
+  "name": "mandelbrot-set",
+  "version": "1.0.1",
+  "description": "",
+  "dependencies": [
+    {
+      "name": "qtbase",
+      "default-features": false,
+      "features": [
+        "gui",
+        "widgets"
+      ]
+    }
+  ]
+}

@@ -8,49 +8,41 @@ https://user-images.githubusercontent.com/46475907/218579722-5c3443ac-3657-4ca4-
 
 ## Installation
 
-### Prerequisites
-* Qt 6
-* CMake
-* Git
-* Your favorite IDE
-
-### Using QtCreator
-Open folder with the cloned project. Compile and run the project.
-
 ### Windows. vcpkg + Visual Studio 2022
-1. Add vcpkg installation directory to system variables
-    1. Search -> "variables"
+1. Install vcpkg (Step 1 from [the instruction](https://learn.microsoft.com/vcpkg/get_started/get-started))
+2. Add vcpkg installation directory to system variables
+    1. Windows Search -> "variables"
     2. Edit the system environment variables
     3. Environment variables
     4. New user variable
-    5. Variable name: "VCPKG_DIR" (without quotes)
-    5. Variable value: <path to vcpkg installation directory>
-2. Locate to `$VCPKG_DIR`
-3. `git pull`
-4. `.\bootstrap-vcpkg.bat`
-5. `.\vcpkg.exe install qtbase[core,gui,widgets]:x64-windows-static`
-6. Locate to the directory which you want clone project to
-7. Clone this repo
-8. Open Visual Studio 2022 (make sure "C++ CMake tools for Windows" marked in Visual Studio installer -> Visual Studio 2022 -> Modify -> Desktop Development with C++)
-9. Choose "Open folder"
-10. Navigate to the clonned repo
-11. Choose configuration type ("Release" is the best in terms of performance)
-12. Project -> Configure mandelbrot
-13. Build -> Build all
-14. Select Startup Item -> mandelbrot.exe
-15. Debug -> Start without debugging
+    5. Variable name: "VCPKG_ROOT" (without quotes)
+    6. Variable value: <path to vcpkg installation directory>
+3. `cd %VCPKG_DIR% && .\vcpkg.exe install qtbase[core,gui,widgets]:x64-windows-static`
+4. Navigate to the directory where you want to install the project
+5. `git clone --recurse-submodules https://github.com/belous-dp/Mandelbrot-Set.git`
+6. Open Visual Studio 2022 (make sure "C++ CMake tools for Windows" marked in Visual Studio installer -> Visual Studio 2022 -> Modify -> Desktop Development with C++)
+7. Choose "Open folder" and open the project directory
+8. Choose CMake Preset ("Release" is the best in terms of performance)
+9. Project -> Configure mandelbrot
+10. Build -> Build all
+11. Select Startup Item -> mandelbrot.exe
+12. Debug -> Start without debugging
+
+> You can try to install Qt via vcpkg in [manifest mode](https://learn.microsoft.com/en-us/vcpkg/concepts/manifest-mode) by renaming [.vcpkg.json](.vcpkg.json) to `vcpkg.json`
 
 ### Linux. vcpkg + CLion
-1. Add vcpkg installation directory to system environment variables as "VCPKG_DIR" (without quotes)
-2. Locate to `$VCPKG_DIR`
-3. `git pull`
-4. `./bootstrap-vcpkg.sh`
-5. `./vcpkg install qtbase[core,gui,widgets]:x64-linux`
-6. Locate to the directory which you want clone project to
-7. Clone this repo
-8. In CLion open this directory
-9. Choose configuration type ("Release" is the best in terms of performance)
-10. Run
+Good luck with that.
+
+### Linux. Qt installer + CLion
+1. Run `sudo apt update && sudo apt install git build-essential ninja-build libgl1-mesa-dev`
+2. (VPN required) Download [Qt online installer](https://www.qt.io/download-qt-installer).
+3. (VPN required) Run it with mirror argument (e.g. `./qt-online-installer-linux-x64-4.8.0.run --mirror http://www.nic.funet.fi/pub/mirrors/download.qt-project.org`)
+4. (VPN required) In the installation menu you can select only 'Qt6.x.x/desktop' component. Unselect other components for faster and smaller installation.
+5. Add to environment variables /path/to/Qt/version/compiler as QT_DIR (in my case I appended `export QT_DIR="/home/belous/Qt/6.7.1/gcc_64"` to `~/.profile`)
+6. Log out or restart the computer
+7. Navigate to the directory where you want to install the project
+8. `git clone --recurse-submodules https://github.com/belous-dp/Mandelbrot-Set.git`
+9. Open project directory in CLion and choose an appropriate CMake preset or configure and build the project using CLI and CMake.
 
 ## Project structure
 
